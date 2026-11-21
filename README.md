@@ -16,6 +16,30 @@ Também funciona com 3 IAs: a primeira lê, a do meio pensa e a última escreve.
 
 ---
 
+## 👀 Explicação visual: como o pensamento de uma IA entra na outra
+
+> 🖱️ **Versão interativa:** [thiagobueno5569.github.io/costureiro](https://thiagobueno5569.github.io/costureiro/), com controle deslizante e botões. O arquivo é [`docs/index.html`](docs/index.html).
+
+Cada IA pensa num **"plano" próprio**: o mesmo conceito ("capacitor", "derivada", "for i in range") vira um vetor, mas em **coordenadas diferentes** em cada IA. É como duas pessoas descrevendo o mesmo mapa, uma usando norte/leste e a outra usando a direção da rua. O lugar é o mesmo; só a base muda.
+
+<p align="center"><img src="docs/img/mudanca_de_base.gif" width="860" alt="O plano da IA A girando até encaixar no plano da IA B"></p>
+
+Na animação, o quadro é o plano da IA B. ○ é onde a IA B guarda cada conceito, ● é o mesmo conceito vindo da IA A, e o **fio** entre os dois é o erro.
+
+1. **Sem tradutor:** os pontos de A caem em lugares aleatórios do plano de B e os fios cruzam tudo. Para B, as coordenadas de A não significam nada.
+2. **Rotação (Procrustes):** o plano de A **gira e estica por igual** até encaixar. Os grupos de assunto se alinham de uma vez, mas sobram fios nas regiões curvas.
+3. **Super agente:** parte da rotação e **dobra o plano só onde precisa**. Os fios quase somem.
+
+O desenho é uma ilustração em 2 dimensões com pontos simulados. As IAs de verdade pensam em 1024 e 2048 dimensões, mas o mecanismo é o mesmo. Medido de verdade (Qwen3-0.6B → SmolLM2-1.7B): sem tradutor, perplexidade **12.168**; com a rotação, **164**; com o super agente, **42,5**. O SmolLM inteiro faz 9,3.
+
+### E o modo cérebro?
+
+<p align="center"><img src="docs/img/modo_cerebro.gif" width="860" alt="A IA base acionando os especialistas palavra por palavra"></p>
+
+A IA base lê a frase palavra por palavra. Na camada verde, um **portão** decide se aquela palavra precisa do bloco de **código** ou do de **matemática** de outra IA. A pergunta vai traduzida para o especialista (linha cheia) e a resposta volta traduzida (linha tracejada). Quanto mais grossa a linha, mais o portão está aberto. "Derivada" e "x³" chamam a matemática; "função" e "Python" chamam o código. Os valores dos portões na animação são ilustrativos; o Costureiro mede os reais.
+
+---
+
 ## 🔬 O que descobrimos
 
 **Experimento:** o Qwen3-0.6B (Alibaba; 28 camadas, vetor de 1024) lê o texto. Um tradutor leva o pensamento dele para dentro do SmolLM2-1.7B (Hugging Face; 24 camadas, vetor de 2048), que termina a frase. A tabela mostra a perplexidade em 66 trechos que o tradutor nunca viu. O SmolLM inteiro faz **9,3**.

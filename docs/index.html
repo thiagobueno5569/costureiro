@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mudança de base</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: claro e didático, um professor desenhando no quadro
+   IDEA: duas folhas de papel milimetrado (o espaço de cada IA) e uma transparência girando por cima
+   PICTURE: o plano de A sendo girado até encaixar no plano de B, com fios mostrando o erro de cada ponto
+   COLOUR and TYPE: branco, blocos de esmeralda e rosa, tinta preta; Schibsted Grotesk
+   LAYOUT: blocos retangulares como uma caixa de remédio: plano grande, controles, depois o modo cérebro */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#04140d);--ink:light-dark(#0b0b0b,#eef5f1);--sub:light-dark(#4a4f4c,#a9bdb2);
+--em:light-dark(#00a86b,#1fc98a);--rosa:light-dark(#ffd6e0,#4a2531);--blk:light-dark(#f2f7f4,#0b2219);
+--linha:light-dark(#d7e3dc,#1d3a2e);--grade:light-dark(#edf3ef,#0f2a1f);
+--c1:light-dark(#2a78d6,#3987e5);--c2:light-dark(#eb6834,#d95926);--c3:light-dark(#7a5cd6,#9085e9);--c4:light-dark(#c98500,#c98500)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Schibsted Grotesk",system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:auto}
+h1{font-weight:800;font-size:clamp(32px,5vw,50px);line-height:1.05;margin:0 0 10px;text-wrap:balance}
+h2{font-weight:800;font-size:clamp(24px,3vw,32px);line-height:1.1;margin:0 0 8px;text-wrap:balance}
+p{max-width:68ch;margin:0 0 12px}.sub{color:var(--sub)}
+.topo{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:stretch}
+.caixa{background:var(--blk);border:1px solid var(--linha);border-radius:4px}
+.fig{position:relative;min-height:440px}.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+.painel{padding:18px;display:flex;flex-direction:column;gap:14px}
+.rosa{background:var(--rosa);border-color:transparent}
+.passos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+button{font:inherit;font-weight:700;min-height:44px;border-radius:4px;border:2px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;padding:6px 10px}
+button.on{background:var(--ink);color:var(--bg)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--em);outline-offset:2px}
+input[type=range]{width:100%;accent-color:var(--em);height:28px}
+.num{font-size:clamp(34px,5vw,48px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}.leg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:0}
+.barra{height:10px;background:var(--linha);border-radius:99px;overflow:hidden}.barra>b{display:block;height:100%;background:var(--em);transition:width .3s}
+table{border-collapse:collapse;width:100%;font-size:15px}th,td{padding:8px 10px;border-bottom:1px solid var(--linha);text-align:right}th:first-child,td:first-child{text-align:left}
+td b{color:var(--em)}
+.dois{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.mini{font-size:13px;color:var(--sub)}
+.cer{min-height:420px}
+.tok{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tok span{padding:6px 10px;border-radius:4px;border:1px solid var(--linha);font-weight:600;transition:background .25s,color .25s}
+@media(max-width:860px){.topo,.dois{grid-template-columns:minmax(0,1fr)}.fig{min-height:360px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<section class="band"><div class="wrap">
+  <h1>Como o pensamento de uma IA entra na outra</h1>
+  <p class="sub">Cada IA pensa num “plano” próprio: o mesmo conceito vira um vetor em coordenadas diferentes. O super agente acha a <b>mudança de base</b> que leva um plano até o outro. Arraste o controle e veja o plano da IA A girar até encaixar no da IA B.</p>
+  <div class="topo" style="margin-top:18px">
+    <div class="caixa fig" id="figBox" aria-label="Plano da IA B com os pontos da IA A sendo levados até ele"><svg id="plano"></svg></div>
+    <div class="caixa painel rosa">
+      <div class="passos" role="group" aria-label="Tradutor">
+        <button id="b0" class="on">Sem tradutor</button><button id="b1">Rotação</button><button id="b2">Super agente</button>
+      </div>
+      <label for="t" style="font-weight:700">Quanto da transformação aplicar</label>
+      <input id="t" type="range" min="0" max="1" step="0.01" value="0">
+      <div><div class="mini">quanto do pensamento de B foi explicado (R²)</div><div class="num" id="r2">—</div>
+        <div class="barra" style="margin-top:8px"><b id="r2b" style="width:0"></b></div></div>
+      <div><div class="mini">erro médio (tamanho dos fios)</div><div class="num" id="err" style="font-size:28px">—</div></div>
+      <div class="leg" id="leg"></div>
+      <p class="mini" id="exp" style="margin:0"></p>
+    </div>
+  </div>
+  <p class="mini" style="margin-top:10px">Ilustração em 2 dimensões com pontos simulados (as IAs de verdade têm 1024 e 2048 dimensões). ● = conceito no plano da IA A depois do tradutor · ○ = onde a IA B guarda o mesmo conceito · fio = erro que sobra.</p>
+</div></section>
+
+<section class="band" style="background:var(--blk)"><div class="wrap">
+  <h2>A matemática do que você está vendo</h2>
+  <div class="dois">
+    <div>
+      <p><b>1. Sem tradutor.</b> O vetor <i>x</i> da IA A é jogado direto no plano de B. As coordenadas não significam nada para B, e os fios ficam enormes.</p>
+      <p><b>2. Rotação (Procrustes).</b> Com os mesmos textos passando pelas duas IAs, junta-se os pares (x, y). Pela SVD de XᵀY = UΣVᵀ, a melhor rotação é <b>W = UVᵀ</b>, mais uma escala s. Ela só gira e estica por igual, sem deformar: preserva ângulos e distâncias.</p>
+      <p><b>3. Super agente.</b> Parte da rotação e soma uma rede pequena treinada: <b>g(x) = s·W·x + MLP(x)</b>. Ela corrige as curvas que uma rotação não alcança. O gradiente passa pela IA B congelada e só ajusta g.</p>
+    </div>
+    <div>
+      <table aria-label="Resultados reais"><thead><tr><th>Medido de verdade</th><th>perplexidade</th></tr></thead><tbody>
+        <tr><td>Qwen3-0.6B → SmolLM2-1.7B, sem tradutor</td><td>12.168</td></tr>
+        <tr><td>com a rotação de Procrustes</td><td>164</td></tr>
+        <tr><td>com o super agente treinado</td><td><b>42,5</b></td></tr>
+        <tr><td>SmolLM2 inteiro (o máximo)</td><td>9,3</td></tr>
+      </tbody></table>
+      <p class="mini" style="margin-top:8px">Costura no meio dos modelos (camada 11 → 10). A rotação explicou 63% (R²) entre famílias diferentes e 94% entre Qwen2.5-Coder e Qwen2.5-Math. Menor perplexidade = melhor.</p>
+    </div>
+  </div>
+</div></section>
+
+<section class="band"><div class="wrap">
+  <h2>Modo cérebro: a base chama o especialista quando precisa</h2>
+  <p class="sub">A IA base lê palavra por palavra. Numa camada do meio, um portão decide se aquela palavra precisa do bloco de código ou do bloco de matemática de outra IA. A ida e a volta passam por uma mudança de base.</p>
+  <div class="dois" style="margin-top:14px">
+    <div class="caixa fig cer"><svg id="cerebro" aria-label="Diagrama do modo cérebro"></svg></div>
+    <div class="caixa painel">
+      <button id="play">▶ Ler a frase</button>
+      <div class="tok" id="toks"></div>
+      <div><div class="mini">portão do especialista de código</div><div class="barra"><b id="gc" style="width:0;background:var(--c2)"></b></div></div>
+      <div><div class="mini">portão do especialista de matemática</div><div class="barra"><b id="gm" style="width:0;background:var(--c3)"></b></div></div>
+      <p class="mini" style="margin:0">Valores dos portões ilustrativos. No Costureiro, a aba 🧠 Modo cérebro mede de verdade quanto cada especialista é acionado em cada assunto.</p>
+    </div>
+  </div>
+</div></section>
+
+<script>
+{
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+// ---------- pontos simulados: 4 assuntos no plano da IA A
+const temas=[["circuitos","--c1"],["matemática","--c2"],["código","--c3"],["cotidiano","--c4"]];
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+const gauss=()=>{let u=rnd()||1e-9,v=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(6.283*v)};
+const centros=[[-1.2,0.9],[1.1,1.0],[1.0,-1.1],[-1.0,-0.9]];
+const A=[];temas.forEach((t,k)=>{for(let i=0;i<14;i++)A.push({k,x:centros[k][0]+0.38*gauss(),y:centros[k][1]+0.38*gauss()})});
+// plano da IA B = rotação 118°, escala 1,35, uma curva (não linear) e ruído
+const th=118*Math.PI/180,sc=1.35;
+const B=A.map(p=>{let x=sc*(Math.cos(th)*p.x-Math.sin(th)*p.y),y=sc*(Math.sin(th)*p.x+Math.cos(th)*p.y);
+  x+=0.5*y*y-0.6;y+=0.5*Math.sin(1.6*x);return{x:x+0.06*gauss(),y:y+0.06*gauss()}});
+// ---------- Procrustes 2D (fecha em forma: ângulo ótimo)
+const mean=P=>[P.reduce((s,p)=>s+p.x,0)/P.length,P.reduce((s,p)=>s+p.y,0)/P.length];
+const [ax,ay]=mean(A),[bx,by]=mean(B);
+let sxx=0,sxy=0,syx=0,syy=0,na=0;
+A.forEach((p,i)=>{const X=p.x-ax,Y=p.y-ay,U=B[i].x-bx,V=B[i].y-by;sxx+=X*U;sxy+=X*V;syx+=Y*U;syy+=Y*V;na+=X*X+Y*Y});
+const ang=Math.atan2(sxy-syx,sxx+syy),s=(Math.cos(ang)*(sxx+syy)+Math.sin(ang)*(sxy-syx))/na;
+const rot=p=>{const X=p.x-ax,Y=p.y-ay;return{x:bx+s*(Math.cos(ang)*X-Math.sin(ang)*Y),y:by+s*(Math.sin(ang)*X+Math.cos(ang)*Y)}};
+const R=A.map(rot);
+// ---------- "super agente": ajuste quadrático por mínimos quadrados sobre a rotação (corrige a curva)
+const feats=p=>[1,p.x,p.y,p.x*p.x,p.x*p.y,p.y*p.y,p.x*p.x*p.y,p.y*p.y*p.y];
+function resolver(M,v){const n=M.length,a=M.map((r,i)=>[...r,v[i]]);for(let c=0;c<n;c++){let m=c;for(let r=c+1;r<n;r++)if(Math.abs(a[r][c])>Math.abs(a[m][c]))m=r;[a[c],a[m]]=[a[m],a[c]];for(let r=0;r<n;r++){if(r===c)continue;const f=a[r][c]/a[c][c];for(let k=c;k<=n;k++)a[r][k]-=f*a[c][k]}}return a.map((r,i)=>r[n]/r[i])}
+function ajusta(alvo){const F=R.map(feats),m=F[0].length,M=[...Array(m)].map(()=>Array(m).fill(0)),v=Array(m).fill(0);
+  F.forEach((f,i)=>{for(let a=0;a<m;a++){v[a]+=f[a]*alvo[i];for(let b=0;b<m;b++)M[a][b]+=f[a]*f[b]+(a===b?1e-3:0)}});return resolver(M,v)}
+const cx=ajusta(B.map(p=>p.x)),cy=ajusta(B.map(p=>p.y));
+const S=R.map(p=>{const f=feats(p);return{x:f.reduce((s,v,i)=>s+v*cx[i],0),y:f.reduce((s,v,i)=>s+v*cy[i],0)}});
+// ---------- estado
+const destinos=[A.map(p=>({x:p.x,y:p.y})),R,S];
+const textos=["As coordenadas de A não significam nada no plano de B: cada conceito cai longe de onde B o guarda.",
+ "A rotação gira e estica o plano inteiro de uma vez. Os grupos de assuntos já se encaixam, mas sobra o erro das curvas.",
+ "O super agente começa na rotação e aprende a dobrar o plano onde precisa. Os fios quase somem."];
+let modo=0,t=0,de=destinos[0],para=destinos[0];
+const svg=document.getElementById("plano"),fig=document.getElementById("figBox");
+function pos(i){return{x:de[i].x+(para[i].x-de[i].x)*t,y:de[i].y+(para[i].y-de[i].y)*t}}
+function metrica(P){const[mx,my]=mean(B);let se=0,st=0,e=0;P.forEach((p,i)=>{const dx=p.x-B[i].x,dy=p.y-B[i].y;se+=dx*dx+dy*dy;e+=Math.hypot(dx,dy);st+=(B[i].x-mx)**2+(B[i].y-my)**2});return{r2:1-se/st,e:e/P.length}}
+function desenhar(){
+  const W=fig.clientWidth,H=fig.clientHeight,pad=W<520?18:30;
+  const xs=[...B,...A,...R].map(p=>p.x),ys=[...B,...A,...R].map(p=>p.y);
+  const x0=Math.min(...xs)-.3,x1=Math.max(...xs)+.3,y0=Math.min(...ys)-.3,y1=Math.max(...ys)+.3;
+  const k=Math.min((W-2*pad)/(x1-x0),(H-2*pad)/(y1-y0)),ox=(W-k*(x1-x0))/2,oy=(H-k*(y1-y0))/2;
+  const X=x=>ox+(x-x0)*k,Y=y=>H-(oy+(y-y0)*k);
+  let g="";const passo=k*0.5;
+  for(let gx=X(x0)%passo;gx<W;gx+=passo)g+=`<line x1="${gx}" y1="0" x2="${gx}" y2="${H}" stroke="${css('--grade')}"/>`;
+  for(let gy=Y(y0)%passo;gy<H;gy+=passo)g+=`<line x1="0" y1="${gy}" x2="${W}" y2="${gy}" stroke="${css('--grade')}"/>`;
+  let fios="",alvos="",pts="";
+  A.forEach((p,i)=>{const q=pos(i),c=css(temas[p.k][1]);
+    fios+=`<line x1="${X(q.x)}" y1="${Y(q.y)}" x2="${X(B[i].x)}" y2="${Y(B[i].y)}" stroke="${c}" stroke-opacity=".45" stroke-width="1.5"/>`;
+    alvos+=`<circle cx="${X(B[i].x)}" cy="${Y(B[i].y)}" r="6" fill="none" stroke="${c}" stroke-width="2"/>`;
+    pts+=`<circle cx="${X(q.x)}" cy="${Y(q.y)}" r="5.5" fill="${c}" stroke="${css('--blk')}" stroke-width="2"><title>${temas[p.k][0]}</title></circle>`});
+  const rot=`<text x="${W-12}" y="22" text-anchor="end" font-size="13" fill="${css('--sub')}">plano da IA B</text>`;
+  svg.innerHTML=g+fios+alvos+pts+rot;
+  const m=metrica(A.map((_,i)=>pos(i)));
+  document.getElementById("r2").textContent=(Math.max(0,m.r2)*100).toFixed(0)+"%";
+  document.getElementById("r2b").style.width=(Math.max(0,m.r2)*100)+"%";
+  document.getElementById("err").textContent=m.e.toFixed(2);
+}
+const tIn=document.getElementById("t");
+function escolher(n){
+  const atual=A.map((_,i)=>pos(i));de=atual;para=destinos[n];modo=n;t=0;tIn.value=0;
+  ["b0","b1","b2"].forEach((id,i)=>document.getElementById(id).classList.toggle("on",i===n));
+  document.getElementById("exp").textContent=textos[n];
+  animar();
+}
+let raf=null;
+function animar(){cancelAnimationFrame(raf);const reduz=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduz){t=1;tIn.value=1;desenhar();return}
+  const t0=performance.now();const f=now=>{t=Math.min(1,(now-t0)/1400);t=t<.5?2*t*t:1-(-2*t+2)**2/2;tIn.value=t;desenhar();if(t<1)raf=requestAnimationFrame(f)};raf=requestAnimationFrame(f)}
+tIn.addEventListener("input",()=>{cancelAnimationFrame(raf);t=+tIn.value;desenhar()});
+["b0","b1","b2"].forEach((id,i)=>document.getElementById(id).addEventListener("click",()=>escolher(i)));
+document.getElementById("leg").innerHTML=temas.map(([n,c])=>`<span><i style="background:${css(c)}"></i>${n}</span>`).join("");
+document.getElementById("exp").textContent=textos[0];
+const ro1=new ResizeObserver(desenhar);ro1.observe(fig);
+
+// ---------- modo cérebro
+const frase=[["Calcule",0,.7],["a",0,.1],["derivada",.1,.95],["de",0,.2],["x³",.15,.9],["e",0,.05],["escreva",.55,.2],["a",0,0],["função",.9,.3],["em",.2,0],["Python",.97,.05]];
+const tk=document.getElementById("toks");tk.innerHTML=frase.map(f=>`<span>${f[0]}</span>`).join("");
+const sv=document.getElementById("cerebro"),box=sv.parentElement;let atual=-1;
+function cerebro(){
+  const W=box.clientWidth,H=box.clientHeight,c=W<520;
+  const bx=W*.12,bw=W*.2,top=34,n=12,lh=(H-top-30)/n,camada=6;
+  const gc=atual>=0?frase[atual][1]:0,gm=atual>=0?frase[atual][2]:0;
+  let o=`<text x="${bx+bw/2}" y="22" text-anchor="middle" font-weight="700" font-size="${c?12:14}" fill="${css('--ink')}">IA base</text>`;
+  for(let i=0;i<n;i++){const y=top+i*lh;o+=`<rect x="${bx}" y="${y}" width="${bw}" height="${lh-4}" rx="3" fill="${i===camada?css('--em'):css('--linha')}"/>`}
+  const yc=top+camada*lh+(lh-4)/2;
+  const esp=[["código",css('--c2'),H*.22,gc],["matemática",css('--c3'),H*.62,gm]];
+  const ex=W*.66,ew=W*.26,eh=H*.22;
+  esp.forEach(([nome,cor,ey,g])=>{
+    const op=.15+.85*g,lw=1+5*g;
+    o+=`<path d="M${bx+bw} ${yc} C ${W*.45} ${yc}, ${W*.5} ${ey+eh*.3}, ${ex} ${ey+eh*.3}" fill="none" stroke="${cor}" stroke-width="${lw}" stroke-opacity="${op}"/>`;
+    o+=`<path d="M${ex} ${ey+eh*.7} C ${W*.5} ${ey+eh*.7}, ${W*.45} ${yc+8}, ${bx+bw} ${yc+8}" fill="none" stroke="${cor}" stroke-width="${lw}" stroke-opacity="${op}" stroke-dasharray="6 5"/>`;
+    o+=`<rect x="${ex}" y="${ey}" width="${ew}" height="${eh}" rx="4" fill="${cor}" fill-opacity="${.12+.6*g}" stroke="${cor}" stroke-width="2"/>`;
+    o+=`<text x="${ex+ew/2}" y="${ey+eh/2-4}" text-anchor="middle" font-weight="700" font-size="${c?12:14}" fill="${css('--ink')}">${nome}</text>`;
+    o+=`<text x="${ex+ew/2}" y="${ey+eh/2+14}" text-anchor="middle" font-size="12" fill="${css('--sub')}">portão ${(100*g).toFixed(0)}%</text>`;
+  });
+  o+=`<text x="${W*.47}" y="${H-10}" text-anchor="middle" font-size="12" fill="${css('--sub')}">— ida (traduzida)   - - volta (traduzida)</text>`;
+  sv.innerHTML=o;
+  document.getElementById("gc").style.width=(100*gc)+"%";document.getElementById("gm").style.width=(100*gm)+"%";
+  [...tk.children].forEach((s,i)=>{const on=i===atual;s.style.background=on?css('--ink'):"";s.style.color=on?css('--bg'):""});
+}
+const ro2=new ResizeObserver(cerebro);ro2.observe(box);
+let tm=null;
+document.getElementById("play").addEventListener("click",()=>{clearInterval(tm);atual=0;cerebro();
+  tm=setInterval(()=>{atual++;if(atual>=frase.length){clearInterval(tm);atual=-1}cerebro()},900)});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{desenhar();cerebro()});
+new MutationObserver(()=>{desenhar();cerebro()}).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+}
+</script>
+</body>
+</html>
