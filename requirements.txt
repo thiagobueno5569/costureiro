@@ -1,0 +1,7 @@
+torch
+transformers
+gradio
+plotly
+pypdf
+pandas
+pyarrow

@@ -1,0 +1,113 @@
+{
+ "b_inteiro": 9.312079858880658,
+ "costuras": [
+  {
+   "prof": 0.4,
+   "camada_a": 11,
+   "camada_b": 10,
+   "procrustes_cru": 167.67536242217324,
+   "procrustes_normalizado": 305.54580885958234,
+   "linear_treinado": 52.650448486837995,
+   "linear_treinado_curva": [
+    {
+     "epoca": 1,
+     "treino": 101.16426258093637,
+     "teste": 65.916720004146
+    },
+    {
+     "epoca": 2,
+     "treino": 40.72202729185662,
+     "teste": 52.252928358119554
+    },
+    {
+     "epoca": 3,
+     "treino": 22.441891808396544,
+     "teste": 49.749921559240406
+    },
+    {
+     "epoca": 4,
+     "treino": 15.043974038242808,
+     "teste": 52.650448486837995
+    }
+   ],
+   "linear_mais_mlp_treinado": 48.32337039023654,
+   "linear_mais_mlp_treinado_curva": [
+    {
+     "epoca": 1,
+     "treino": 86.49051722814113,
+     "teste": 60.571520525137366
+    },
+    {
+     "epoca": 2,
+     "treino": 34.910275635103176,
+     "teste": 45.02513502290587
+    },
+    {
+     "epoca": 3,
+     "treino": 17.894601278331994,
+     "teste": 42.51263407395284
+    },
+    {
+     "epoca": 4,
+     "treino": 10.589939418460999,
+     "teste": 48.32337039023654
+    }
+   ],
+   "exemplo": "A lei de Ohm diz que a corrente de um ponto é dada por: I(t) =V(t/Rt) ou It(t"
+  },
+  {
+   "prof": 0.6,
+   "camada_a": 17,
+   "camada_b": 14,
+   "procrustes_cru": 211.87588404623028,
+   "procrustes_normalizado": 237.3718185716816,
+   "linear_treinado": 66.93049110482454,
+   "linear_treinado_curva": [
+    {
+     "epoca": 1,
+     "treino": 92.04306113997335,
+     "teste": 66.48146403896358
+    },
+    {
+     "epoca": 2,
+     "treino": 36.134725942298545,
+     "teste": 54.87385884466292
+    },
+    {
+     "epoca": 3,
+     "treino": 18.39839919189027,
+     "teste": 56.90495317651681
+    },
+    {
+     "epoca": 4,
+     "treino": 11.977220970501127,
+     "teste": 66.93049110482454
+    }
+   ],
+   "linear_mais_mlp_treinado": 66.49419685157572,
+   "linear_mais_mlp_treinado_curva": [
+    {
+     "epoca": 1,
+     "treino": 76.66240353289106,
+     "teste": 58.37069773920258
+    },
+    {
+     "epoca": 2,
+     "treino": 29.782991331050457,
+     "teste": 47.60260628802841
+    },
+    {
+     "epoca": 3,
+     "treino": 13.589625259402252,
+     "teste": 50.51720849981226
+    },
+    {
+     "epoca": 4,
+     "treino": 7.290454557123317,
+     "teste": 66.49419685157572
+    }
+   ],
+   "exemplo": "A lei de Ohm diz que a correntao de um poçel, quando a correntão é zero, o corrento é zero. A con"
+  }
+ ]
+}
