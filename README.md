@@ -36,7 +36,7 @@ Também funciona com 3 IAs: a primeira lê, a do meio pensa e a última escreve.
 
 ### 🧪 Primeira IA nova: programação + matemática
 
-Começo do **Qwen2.5-Coder-0.5B** (camadas 0–9) → tradutor → fim do **Qwen2.5-Math-1.5B** (camadas 11–27). O super agente escolheu sozinho o corte em 40%. Foram usados 3 MB de código Python e 7.473 problemas do GSM8K, com 3 épocas e 15 minutos de treino na RTX 2060. Os números são bits por caractere em textos de teste (menor = melhor):
+Começo do **Qwen2.5-Coder-0.5B** (camadas 0–9) → tradutor → fim do **Qwen2.5-Math-1.5B** (camadas 11–27). O super agente escolheu sozinho o corte em 40%. Foram usados 3 MB de código Python e 7.473 problemas do GSM8K, com 3 épocas e 15 minutos de treino. Os números são bits por caractere em textos de teste (menor = melhor):
 
 | assunto | só o Coder | só o Math | costurada (rotação) | **IA nova (treinada)** |
 |---|---|---|---|---|
