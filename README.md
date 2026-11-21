@@ -2,7 +2,7 @@
 
 > **Crie uma IA nova juntando as melhores partes de outras IAs.** Pegue o começo de uma IA boa em programação, junte com o fim de uma IA boa em matemática, e deixe um *super agente tradutor* aprender a **mudança de base** entre os "pensamentos" das duas.
 
-Funciona entre IAs de **empresas, tamanhos e tokenizers diferentes**. As IAs originais ficam congeladas; só o tradutor, de poucos MB, é treinado. Tudo roda num PC doméstico (RTX 2060 com 6 GB).
+Funciona entre IAs de **empresas, tamanhos e tokenizers diferentes**. As IAs originais ficam congeladas; só o tradutor, de poucos MB, é treinado. Tudo roda num PC doméstico 
 
 <p align="center"><img src="docs/img/costura.png" width="820" alt="Resultado da costura"></p>
 
