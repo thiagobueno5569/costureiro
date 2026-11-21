@@ -34,6 +34,20 @@ Também funciona com 3 IAs: a primeira lê, a do meio pensa e a última escreve.
 4. **As "dimensões gigantes" carregam informação.** 99% da variância do SmolLM está em 8 dimensões. Normalizá-las antes de traduzir **piora** a costura (164 → 305).
 5. **Limite atual:** com só 265 trechos de texto, o tradutor começa a decorar a partir da 3ª época (treino 7–10 contra teste 42). O próximo passo é usar mais texto.
 
+### 🧪 Primeira IA nova: programação + matemática
+
+Começo do **Qwen2.5-Coder-0.5B** (camadas 0–9) → tradutor → fim do **Qwen2.5-Math-1.5B** (camadas 11–27). O super agente escolheu sozinho o corte em 40%. Foram usados 3 MB de código Python e 7.473 problemas do GSM8K, com 3 épocas e 15 minutos de treino na RTX 2060. Os números são bits por caractere em textos de teste (menor = melhor):
+
+| assunto | só o Coder | só o Math | costurada (rotação) | **IA nova (treinada)** |
+|---|---|---|---|---|
+| programação | **0,730** | 1,360 | 1,391 | 1,283 |
+| matemática | 0,866 | 0,864 | 1,031 | **0,722** |
+
+6. **Em matemática, a IA nova ficou 16% melhor que as duas originais** (0,722 contra 0,864). Uma ressalva honesta: o tradutor foi treinado em problemas do mesmo estilo do teste (GSM8K) e as originais não. Parte do ganho é adaptação ao formato, não necessariamente raciocínio melhor.
+7. **Em programação, ela ficou entre as duas:** melhor que o Math sozinho, mas longe do Coder (1,283 contra 0,730). A IA que escreve a resposta é a de matemática, e ela não conhece tão bem o vocabulário de código.
+8. **Entre IAs da mesma família (Qwen2.5), a rotação sozinha já explica 94%** ($R^2$), contra 63% entre famílias diferentes.
+9. O texto gerado já mistura as duas coisas: começa com `def area_circulo(r): return 3.14 * r * r` e segue com exemplos numéricos de cálculo de área.
+
 Dados brutos em [`resultados/`](resultados/). Scripts dos experimentos em [`experimentos/`](experimentos/).
 
 ---
@@ -102,7 +116,8 @@ $$\text{imp}(\ell, a) = \text{BPC}_a(\text{sem } \ell) - \text{BPC}_a(\text{mode
 ## 🗺️ Próximos passos
 
 - [ ] Treinar com 10 a 50× mais texto e medir quanto a costura chega perto da IA inteira
-- [ ] Resultado da costura **Coder + Math** (programação + matemática)
+- [x] Resultado da costura **Coder + Math** (programação + matemática)
+- [ ] Medir em problemas de outro estilo (não GSM8K), para separar adaptação de raciocínio
 - [ ] **Espaço comum:** um codificador e um decodificador por IA, para que qualquer par converse sem treinar um tradutor por par
 - [ ] Transplantar especialistas de um MoE para outro através do tradutor (ligação com o [fatiador](https://github.com/thiagobueno5569/fatiador))
 

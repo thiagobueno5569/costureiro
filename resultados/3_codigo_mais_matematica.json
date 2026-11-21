@@ -1,0 +1,63 @@
+{
+ "nome": "codigo-mais-matematica",
+ "partes": [
+  {
+   "modelo": "Qwen/Qwen2.5-Coder-0.5B-Instruct",
+   "inicio": 0,
+   "fim": 9
+  },
+  {
+   "modelo": "Qwen/Qwen2.5-Math-1.5B-Instruct",
+   "inicio": 11,
+   "fim": 27
+  }
+ ],
+ "assuntos": {
+  "programação": [
+   "textos/programacao"
+  ],
+  "matemática": [
+   "textos/matematica"
+  ]
+ },
+ "max_tok": 192,
+ "epocas": 3,
+ "lr": 0.0003,
+ "oculto_mlp": 1024,
+ "max_trechos": 400,
+ "criado": "2026-11-21 19:18",
+ "resultados": {
+  "assuntos": {
+   "programação": {
+    "costurada_inicio": 1.390537158102665,
+    "sozinho_1": 0.7301793144933112,
+    "sozinho_2": 1.3596944875641794,
+    "costurada": 1.283294867870098
+   },
+   "matemática": {
+    "costurada_inicio": 1.0312976032150327,
+    "sozinho_1": 0.8664660726962612,
+    "sozinho_2": 0.8638232809185553,
+    "costurada": 0.7222873377008555
+   }
+  },
+  "curva": [
+   {
+    "epoca": 1,
+    "treino_bpc": 1.0510651572159524,
+    "teste_bpc": 1.046792644551957
+   },
+   {
+    "epoca": 2,
+    "treino_bpc": 0.9213181301475071,
+    "teste_bpc": 1.029465290425838
+   },
+   {
+    "epoca": 3,
+    "treino_bpc": 0.8365308246689652,
+    "teste_bpc": 1.0448235891865745
+   }
+  ],
+  "minutos": 15.361431483427683
+ }
+}
