@@ -629,3 +629,339 @@ def analisar(modelos: list[str], assuntos: dict[str, list[str]], n_trechos=10, m
                 log(f"  camada {l + 1}/{L}")
         out["modelos"][nome] = {"camadas": L, "bpc": base, "importancia": imp}
     return out
+
+
+# ============================================================================ modo cérebro: especialistas sob demanda
+#
+# Uma IA "base" (a que conversa/interpreta) roda inteira. Em uma camada escolhida, cada especialista
+# (um BLOCO de camadas de outra IA, ex.: as camadas de código do Coder) pode ser acionado:
+#
+#     x = pensamento da base na camada L
+#     g = portão(x) ∈ [0,1] por token               (o super agente decide se precisa do especialista)
+#     y = bloco_especialista( T_in(x) )             (mudança de base para o espaço do especialista)
+#     pensamento ← pensamento + g · T_out(y)        (resposta do especialista volta traduzida)
+#
+# T_out começa em zero: no início a IA é exatamente a base. O treino aprende quando acionar (portão),
+# como traduzir (T_in, T_out) e paga uma pequena multa por acionar à toa (esparsidade).
+
+class _Passa(nn.Module):
+    """Camada vazia: devolve o vetor como veio (usada para podar camadas que o especialista não usa)."""
+
+    def forward(self, hidden_states, *a, **kw):
+        return hidden_states
+
+
+def _podar(m, inicio: int, fim: int):
+    """Deixa de verdade só as camadas [inicio..fim]: as anteriores viram _Passa, as posteriores somem,
+    e a cabeça de saída sai (o especialista nunca escolhe palavras) — economiza memória da placa."""
+    L = camadas(m)
+    for i in range(min(inicio, len(L))):
+        L[i] = _Passa()
+    while len(L) > fim + 1:
+        del L[len(L) - 1]
+    if not getattr(m.config, "tie_word_embeddings", False):
+        m.lm_head = nn.Identity()
+    if DEV == "cuda":
+        torch.cuda.empty_cache()
+    return m
+
+
+def _carregar_cru(nome: str):
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    tok = AutoTokenizer.from_pretrained(nome)
+    m = AutoModelForCausalLM.from_pretrained(nome, dtype=DT).to(DEV).eval()
+    for q in m.parameters():
+        q.requires_grad_(False)
+    return tok, m
+
+
+@dataclass
+class Especialista:
+    modelo: str
+    inicio: int
+    fim: int
+    nome: str = ""          # ex.: "código"
+
+
+@dataclass
+class ReceitaCerebro:
+    nome: str
+    base: str
+    camada: int                                  # camada da base onde os especialistas são consultados
+    especialistas: list[Especialista]
+    assuntos: dict[str, list[str]] = field(default_factory=dict)
+    max_tok: int = 192
+    epocas: int = 4
+    lr: float = 5e-4
+    esparsidade: float = 0.02                    # multa por acionar especialista (em bits/caractere)
+    max_trechos: int = 400
+    oculto_mlp: int = 512
+    criado: str = ""
+    resultados: dict = field(default_factory=dict)
+
+    def salvar(self, pasta: Path):
+        pasta.mkdir(parents=True, exist_ok=True)
+        d = asdict(self)
+        d["tipo"] = "cerebro"
+        (pasta / "receita.json").write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
+
+    @staticmethod
+    def abrir(pasta: Path) -> "ReceitaCerebro":
+        d = json.loads((Path(pasta) / "receita.json").read_text(encoding="utf-8"))
+        d.pop("tipo", None)
+        d["especialistas"] = [Especialista(**e) for e in d["especialistas"]]
+        return ReceitaCerebro(**d)
+
+
+class Ligacao(nn.Module):
+    """Ponte base ⇄ especialista: tradutor de ida, tradutor de volta e portão."""
+
+    def __init__(self, d_base, d_esp, oculto):
+        super().__init__()
+        self.ida = Tradutor(d_base, d_esp, oculto)
+        self.volta = nn.Linear(d_esp, d_base)
+        nn.init.zeros_(self.volta.weight)
+        nn.init.zeros_(self.volta.bias)
+        self.portao = nn.Sequential(nn.Linear(d_base, 64), nn.GELU(), nn.Linear(64, 1))
+        nn.init.zeros_(self.portao[2].weight)
+        nn.init.constant_(self.portao[2].bias, 0.0)     # começa em 0,5 (indeciso)
+        self.register_buffer("escala_base", torch.ones(()))
+
+    def forward(self, x):
+        return torch.sigmoid(self.portao(x / self.escala_base)).squeeze(-1)
+
+
+def _injetar(modulo, entrada_fn):
+    """Gancho antes da camada: troca o vetor de entrada por entrada_fn(vetor)."""
+    def pre(mod, a, kw):
+        hs = kw.get("hidden_states", a[0] if a else None)
+        novo = entrada_fn(hs)
+        if "hidden_states" in kw:
+            kw["hidden_states"] = novo
+            return a, kw
+        return (novo,) + tuple(a[1:]), kw
+    return modulo.register_forward_pre_hook(pre, with_kwargs=True)
+
+
+class IACerebro(nn.Module):
+    def __init__(self, r: ReceitaCerebro, log=print, textos_inicio: list[str] | None = None):
+        super().__init__()
+        self.r, self.log = r, log
+        self.tok, self.base = carregar_modelo(r.base)
+        nb = len(camadas(self.base))
+        if not 1 <= r.camada < nb:
+            raise ValueError(f"camada da base deve estar entre 1 e {nb - 1}")
+        d = self.base.config.hidden_size
+        self.ligacoes = nn.ModuleList([Ligacao(d, info_modelo(e.modelo)["dimensao"], r.oculto_mlp).to(DEV)
+                                       for e in r.especialistas])
+        self.esps = []
+        for e, lig in zip(r.especialistas, self.ligacoes):
+            chave = f"{e.modelo}|{e.inicio}-{e.fim}"
+            if chave in _cache:
+                self.esps.append(_cache[chave])
+                continue
+            tok_e, m_e = _carregar_cru(e.modelo)
+            n = len(camadas(m_e))
+            if not 0 <= e.inicio <= e.fim < n:
+                raise ValueError(f"especialista {e.nome}: camadas {e.inicio}..{e.fim} fora de 0..{n - 1}")
+            if textos_inicio:                       # ponte começa pela rotação (com a IA ainda inteira)
+                self._iniciar_ponte(lig, tok_e, m_e, e, textos_inicio)
+            _cache[chave] = (tok_e, _podar(m_e, e.inicio, e.fim))
+            self.esps.append(_cache[chave])
+        self.ultimos_portoes = None
+        self._portoes_vivos = []
+        self.desligar = False      # True = roda só a base (para comparar)
+
+    @torch.no_grad()
+    def _iniciar_ponte(self, lig, tok_e, m_e, e, textos):
+        xs, ys, normas = [], [], []
+        for t in textos:
+            eb = self.tok(t, return_offsets_mapping=True, add_special_tokens=False)
+            ids_b, offs_b = eb["input_ids"][:self.r.max_tok], eb["offset_mapping"][:self.r.max_tok]
+            if len(ids_b) < 8:
+                continue
+            ee = tok_e(t[:offs_b[-1][1]], return_offsets_mapping=True, add_special_tokens=False)
+            if not ee["input_ids"]:
+                continue
+            xb = estado_nativo(self.base, ids_b, self.r.camada)
+            ye = estado_nativo(m_e, ee["input_ids"], e.inicio)
+            al = alinhar(ee["offset_mapping"], offs_b)
+            xs.append(xb); ys.append(ye[torch.tensor(al, device=DEV)]); normas.append(xb.norm(dim=-1).mean())
+        if xs:
+            r2 = lig.ida.iniciar_procrustes(torch.cat(xs), torch.cat(ys))
+            lig.escala_base.fill_(float(torch.stack(normas).mean()) / math.sqrt(self.base.config.hidden_size))
+            self.log(f"  ponte para '{e.nome or e.modelo}': rotação explica {100 * r2:.0f}% (R²)")
+
+    def _consultar(self, hs):
+        """Chamado dentro da camada da base: consulta cada especialista e soma a resposta, ponderada pelo portão."""
+        x = hs[0].float()
+        pad = [0] * x.shape[0]
+        soma = torch.zeros_like(x)
+        vivos = []
+        for (tok_e, m_e), lig, e in zip(self.esps, self.ligacoes, self.r.especialistas):
+            g = lig(x)
+            vivos.append(g)
+            y = rodar_parte(m_e, pad, e.inicio, e.fim, lig.ida(x))
+            soma = soma + g.unsqueeze(-1) * lig.volta(y)
+        self._portoes_vivos = vivos
+        self.ultimos_portoes = torch.stack([v.detach() for v in vivos]) if vivos else None
+        return (x + soma).to(hs.dtype).unsqueeze(0)
+
+    def logits(self, ids):
+        g = None if self.desligar else _injetar(camadas(self.base)[self.r.camada], self._consultar)
+        try:
+            return self.base(torch.tensor([ids], device=next(self.base.parameters()).device)).logits[0].float()
+        finally:
+            if g is not None:
+                g.remove()
+
+    def perda(self, ids):
+        lg = self.logits(ids)
+        nll = nn.functional.cross_entropy(lg[:-1], torch.tensor(ids[1:], device=lg.device), reduction="sum")
+        uso = torch.stack([p.mean() for p in self._portoes_vivos]).sum()
+        return nll, uso
+
+    # ------------------------------------------------------------------ medir
+    @torch.no_grad()
+    def medir(self, textos):
+        nll, chars, uso, n = 0.0, 0, None, 0
+        for t in textos:
+            e = self.tok(t, return_offsets_mapping=True, add_special_tokens=False)
+            ids, offs = e["input_ids"][:self.r.max_tok], e["offset_mapping"][:self.r.max_tok]
+            if len(ids) < 8:
+                continue
+            lg = self.logits(ids)
+            nll += nn.functional.cross_entropy(lg[:-1], torch.tensor(ids[1:], device=lg.device), reduction="sum").item()
+            chars += offs[-1][1]
+            if not self.desligar and self.ultimos_portoes is not None:
+                m = self.ultimos_portoes.mean(dim=1).cpu()
+                uso = m if uso is None else uso + m
+                n += 1
+        bpc = nll / max(chars, 1) / math.log(2)
+        return bpc, ([float(v) / n for v in uso] if uso is not None and n else [])
+
+    @torch.no_grad()
+    def gerar(self, prompt, n=120, temperatura=0.0):
+        ids = self.tok(prompt, add_special_tokens=False)["input_ids"]
+        gerados, portoes = [], []
+        for _ in range(n):
+            lg = self.logits(ids[-1024:])[-1]
+            prox = (torch.multinomial(torch.softmax(lg / temperatura, -1), 1).item() if temperatura > 0 else lg.argmax().item())
+            if prox == self.tok.eos_token_id:
+                break
+            ids.append(prox); gerados.append(prox)
+            portoes.append([] if self.ultimos_portoes is None else [float(v) for v in self.ultimos_portoes[:, -1]])
+        # portões finais de cada token gerado (lendo o texto inteiro uma vez)
+        self.logits(ids[-1024:])
+        final = [] if self.ultimos_portoes is None else self.ultimos_portoes[:, -len(gerados):].cpu().tolist() if gerados else []
+        pedacos = [self.tok.decode([t]) for t in gerados]
+        return self.tok.decode(gerados), pedacos, final
+
+    def salvar(self, pasta: Path):
+        self.r.criado = time.strftime("%Y-%m-%d %H:%M")
+        self.r.salvar(Path(pasta))
+        torch.save(self.ligacoes.state_dict(), Path(pasta) / "ligacoes.pt")
+
+    @staticmethod
+    def abrir(pasta: Path, log=print) -> "IACerebro":
+        r = ReceitaCerebro.abrir(pasta)
+        ia = IACerebro(r, log)
+        ia.ligacoes.load_state_dict(torch.load(Path(pasta) / "ligacoes.pt", map_location=DEV))
+        return ia
+
+
+def criar_cerebro(r: ReceitaCerebro, pasta_saida: Path, log=print, parar=lambda: False, progresso=lambda p: None):
+    t0 = time.time()
+    rng = random.Random(0)
+    torch.manual_seed(0)
+    L = lambda m: log(f"[{(time.time() - t0) / 60:5.1f} min] {m}")
+    treino, teste = {}, {}
+    for a, arqs in r.assuntos.items():
+        tr = fatiar(ler_textos(arqs), rng)
+        rng.shuffle(tr)
+        tr = tr[:r.max_trechos + max(5, r.max_trechos // 6)]
+        n_te = max(5, len(tr) // 6)
+        treino[a], teste[a] = tr[:-n_te], tr[-n_te:]
+        L(f"assunto '{a}': {len(treino[a])} trechos de treino, {len(teste[a])} de teste")
+    progresso({"fase": "carregando", "fracao": 0.01, "texto": "carregando a base e os especialistas"})
+    todos_tr = [t for a in treino for t in treino[a]]
+    progresso({"fase": "preparando", "fracao": 0.03, "texto": "pontes começando pela rotação de Procrustes"})
+    ia = IACerebro(r, L, textos_inicio=rng.sample(todos_tr, min(120, len(todos_tr))))
+    L(f"base: {r.base} (consulta na camada {r.camada})")
+    for e in r.especialistas:
+        L(f"especialista '{e.nome}': {e.modelo}, camadas {e.inicio}..{e.fim}")
+
+    res = {"assuntos": {}, "curva": [], "nomes": [e.nome or e.modelo for e in r.especialistas]}
+    ia.desligar = True
+    for a in teste:
+        res["assuntos"][a] = {"base": ia.medir(teste[a])[0]}
+    ia.desligar = False
+    L("só a base (bits/caractere): " + "; ".join(f"{a}: {v['base']:.3f}" for a, v in res["assuntos"].items()))
+
+    ids_tr = []
+    for t in todos_tr:
+        ids = ia.tok(t, add_special_tokens=False)["input_ids"][:r.max_tok]
+        if len(ids) > 8:
+            ids_tr.append((ids, len(ia.tok.decode(ids))))
+    opt = torch.optim.AdamW(ia.ligacoes.parameters(), lr=r.lr)
+    passos = max(1, r.epocas * len(ids_tr))
+    sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=r.lr, total_steps=passos, pct_start=0.1)
+    todos_te = [t for a in teste for t in teste[a]]
+    melhor, estado = float("inf"), None
+    for ep in range(r.epocas):
+        rng.shuffle(ids_tr)
+        acc, ch, t_ep = 0.0, 0, time.time()
+        for k, (ids, nch) in enumerate(ids_tr):
+            if parar():
+                break
+            nll, uso = ia.perda(ids)
+            # multa: esparsidade (bits/caractere) × caracteres × ln2  -> mesma unidade da perda
+            (nll + r.esparsidade * math.log(2) * nch * uso).div(len(ids)).backward()
+            torch.nn.utils.clip_grad_norm_(ia.ligacoes.parameters(), 1.0)
+            opt.step(); opt.zero_grad(set_to_none=True); sched.step()
+            acc += nll.item(); ch += nch
+            if k % 5 == 0 or k == len(ids_tr) - 1:
+                feitos = ep * len(ids_tr) + k + 1
+                pp = (time.time() - t_ep) / (k + 1)
+                progresso({"fase": "treinando", "fracao": 0.05 + 0.9 * feitos / passos, "epoca": ep + 1, "epocas": r.epocas,
+                           "passo": k + 1, "passos": len(ids_tr), "bpc_treino": acc / max(ch, 1) / math.log(2),
+                           "restam_s": (passos - feitos) * pp * 1.1, "curva": res["curva"]})
+        progresso({"fase": "medindo", "fracao": 0.05 + 0.9 * (ep + 1) / r.epocas, "texto": "medindo nos textos de teste",
+                   "curva": res["curva"]})
+        b, uso = ia.medir(todos_te)
+        res["curva"].append({"epoca": ep + 1, "treino_bpc": acc / max(ch, 1) / math.log(2), "teste_bpc": b, "uso": uso})
+        marca = ""
+        if b < melhor:
+            melhor, estado, marca = b, {k: v.detach().clone() for k, v in ia.ligacoes.state_dict().items()}, "  ← melhor"
+        L(f"época {ep + 1}/{r.epocas}: teste {b:.3f} bpc · uso dos especialistas "
+          + ", ".join(f"{n} {100 * u:.0f}%" for n, u in zip(res["nomes"], uso)) + marca)
+        if parar():
+            L("parado pelo usuário")
+            break
+    if estado:
+        ia.ligacoes.load_state_dict(estado)
+    for a in teste:
+        b, uso = ia.medir(teste[a])
+        res["assuntos"][a].update({"cerebro": b, "uso": uso})
+    res["minutos"] = (time.time() - t0) / 60
+    r.resultados = res
+    ia.salvar(pasta_saida)
+    (Path(pasta_saida) / "resultado.md").write_text(relatorio_cerebro(r), encoding="utf-8")
+    progresso({"fase": "pronto", "fracao": 1.0, "curva": res["curva"], "texto": "IA nova salva"})
+    L(f"IA nova salva em {pasta_saida}")
+    return ia, res
+
+
+def relatorio_cerebro(r: ReceitaCerebro) -> str:
+    res = r.resultados
+    nomes = res.get("nomes", [])
+    lin = [f"# {r.nome} (modo cérebro)", "", f"Base: `{r.base}`, consulta na camada {r.camada}.", "", "Especialistas:"]
+    lin += [f"- **{e.nome}**: `{e.modelo}` camadas {e.inicio}–{e.fim}" for e in r.especialistas]
+    lin += ["", "| assunto | só a base | **base + especialistas** | " + " | ".join(f"uso de {n}" for n in nomes) + " |",
+            "|---|---|---|" + "---|" * len(nomes)]
+    for a, v in res.get("assuntos", {}).items():
+        usos = " | ".join(f"{100 * u:.0f}%" for u in v.get("uso", []))
+        lin.append(f"| {a} | {v.get('base', float('nan')):.3f} | **{v.get('cerebro', float('nan')):.3f}** | {usos} |")
+    lin += ["", "Bits por caractere (menor = melhor). 'Uso' = quanto, em média, o portão aciona cada especialista naquele assunto.",
+            "", f"Tempo: {res.get('minutos', 0):.1f} min. Criada em {r.criado}."]
+    return "\n".join(lin)

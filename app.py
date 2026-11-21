@@ -16,7 +16,7 @@ import plotly.graph_objects as go
 
 sys.path.insert(0, str(Path(__file__).parent))
 import nucleo
-from nucleo import IACosturada, Parte, Receita
+from nucleo import Especialista, IACerebro, IACosturada, Parte, Receita, ReceitaCerebro
 
 RAIZ = Path(__file__).resolve().parent
 SAIDAS = RAIZ / "ias_novas"
@@ -386,8 +386,19 @@ def costurar(nome, n, *v):
            gr.update(choices=listar_ias(), value=pasta.name)]
 
 
+def _tipo(p):
+    try:
+        return json.loads((p / "receita.json").read_text(encoding="utf-8")).get("tipo", "costura")
+    except Exception:
+        return "?"
+
+
 def listar_ias():
-    return sorted(p.name for p in SAIDAS.iterdir() if (p / "receita.json").exists())
+    return sorted(p.name for p in SAIDAS.iterdir() if (p / "receita.json").exists() and _tipo(p) == "costura")
+
+
+def listar_cerebros():
+    return sorted(p.name for p in SAIDAS.iterdir() if (p / "receita.json").exists() and _tipo(p) == "cerebro")
 
 
 def ver_ia(nome_ia):
@@ -422,6 +433,126 @@ def conversar(nome_ia, prompt, n, temp, comparar):
     finally:
         nucleo.TRAVA.release()
 
+
+
+# ----------------------------------------------------------------------------- modo cérebro
+
+def grafico_cerebro(r: ReceitaCerebro):
+    res = r.resultados
+    assuntos = list(res.get("assuntos", {}))
+    fig = go.Figure()
+    fig.add_bar(name="só a base", x=assuntos, y=[res["assuntos"][a]["base"] for a in assuntos],
+                marker=dict(color=COR[0], cornerradius=4), hovertemplate="%{x}: %{y:.3f}<extra>só a base</extra>")
+    fig.add_bar(name="base + especialistas", x=assuntos, y=[res["assuntos"][a].get("cerebro") for a in assuntos],
+                marker=dict(color=TEXTO, cornerradius=4, pattern=dict(shape="/", fgcolor=SUPERFICIE)),
+                hovertemplate="%{x}: %{y:.3f}<extra>base + especialistas</extra>")
+    fig.update_layout(barmode="group", bargap=0.3, bargroupgap=0.08)
+    fig.update_yaxes(title="bits por caractere (menor = melhor)", rangemode="tozero")
+    fig = _layout(fig, "A base com e sem os especialistas", 340)
+    fig.update_layout(legend=dict(orientation="h", y=-0.2, x=0, xanchor="left"), margin=dict(b=80))
+    return fig
+
+
+def grafico_uso(r: ReceitaCerebro):
+    res = r.resultados
+    assuntos, nomes = list(res.get("assuntos", {})), res.get("nomes", [])
+    fig = go.Figure()
+    for i, n in enumerate(nomes):
+        fig.add_bar(name=n, x=assuntos, y=[100 * res["assuntos"][a]["uso"][i] for a in assuntos],
+                    marker=dict(color=COR[(i + 1) % 3], cornerradius=4),
+                    text=[f"{100 * res['assuntos'][a]['uso'][i]:.0f}%" for a in assuntos], textposition="outside",
+                    hovertemplate="%{x}: aciona %{y:.0f}% das vezes<extra>" + n + "</extra>")
+    fig.update_layout(barmode="group", bargap=0.3, bargroupgap=0.08)
+    fig.update_yaxes(title="quanto o portão aciona (%)", range=[0, 110], ticksuffix="%")
+    fig = _layout(fig, "Quando a base chama cada especialista", 340)
+    fig.update_layout(legend=dict(orientation="h", y=-0.2, x=0, xanchor="left"), margin=dict(b=80))
+    return fig
+
+
+def criar_cerebro_ui(nome, base, camada, *v):
+    import time as _t
+    _parar.clear()
+    esp_v, ass_v = v[:8], v[8:8 + MAX_ASSUNTOS * 2]
+    epocas, esparsidade = v[-2:]
+    esps = []
+    for i in range(2):
+        nm, modelo, ini, fim = esp_v[4 * i:4 * i + 4]
+        if modelo:
+            esps.append(Especialista(modelo.strip(), int(ini), int(fim), (nm or f"especialista {i + 1}").strip()))
+    nada = [gr.update()] * 3
+    if not esps:
+        yield ["Escolha pelo menos um especialista.", "", ""] + nada
+        return
+    r = ReceitaCerebro(nome.strip() or "cerebro", base.strip(), int(camada), esps, ler_assuntos(*ass_v),
+                       epocas=int(epocas), esparsidade=float(esparsidade))
+    if not r.assuntos:
+        yield ["Escolha os assuntos e textos na aba ①.", "", ""] + nada
+        return
+    pasta = SAIDAS / "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in r.nome)
+    q, log, inicio = queue.Queue(), [], _t.time()
+    prog = {"fase": "carregando", "fracao": 0.01, "texto": "carregando a base e os especialistas"}
+    yield ["", barra_progresso(prog, inicio), ""] + nada
+    out = _em_fundo(lambda: nucleo.criar_cerebro(r, pasta, log=lambda m: q.put(("log", m)), parar=_parar.is_set,
+                                                 progresso=lambda p: q.put(("prog", p))), q)
+    while (item := q.get()) is not None:
+        tipo, conteudo = item
+        if tipo == "log":
+            log.append(conteudo)
+        else:
+            prog = conteudo
+        yield ["\n".join(log[-60:]), barra_progresso(prog, inicio), ""] + nada
+    if "erro" in out:
+        yield ["\n".join(log + ["", out["erro"]]), barra_progresso(prog, inicio), ""] + nada
+        return
+    r = ReceitaCerebro.abrir(pasta)
+    yield ["\n".join(log[-60:]), barra_progresso({"fase": "pronto", "fracao": 1, "curva": r.resultados.get("curva"),
+                                                    "texto": f"IA nova salva em ias_novas/{pasta.name}"}, inicio),
+           (pasta / "resultado.md").read_text(encoding="utf-8"),
+           gr.update(value=grafico_cerebro(r), visible=True), gr.update(value=grafico_uso(r), visible=True),
+           gr.update(choices=listar_cerebros(), value=pasta.name)]
+
+
+def conversar_cerebro(nome_ia, prompt, n, temp):
+    if not nome_ia:
+        return "<i>Escolha uma IA do modo cérebro (crie uma acima).</i>"
+    if not nucleo.TRAVA.acquire(blocking=False):
+        return OCUPADO
+    try:
+        ia = IACerebro.abrir(SAIDAS / nome_ia, log=lambda *_: None)
+        _, pedacos, portoes = ia.gerar(prompt, int(n), float(temp))
+        nomes = [e.nome for e in ia.r.especialistas]
+        import html as _h
+        legenda = " ".join(f'<span style="background:{COR[(i + 1) % 3]}55;border-bottom:2px solid {COR[(i + 1) % 3]};'
+                           f'padding:1px 6px;border-radius:4px">{_h.escape(n)}</span>' for i, n in enumerate(nomes))
+        spans = []
+        for k, p in enumerate(pedacos):
+            gs = [portoes[i][k] for i in range(len(portoes))] if portoes else []
+            if gs:
+                i = max(range(len(gs)), key=lambda j: gs[j])
+                cor, forca = COR[(i + 1) % 3], gs[i]
+                alfa = int(min(1.0, max(0.0, (forca - 0.3) / 0.6)) * 200)
+                titulo = " · ".join(f"{nomes[j]} {100 * gs[j]:.0f}%" for j in range(len(gs)))
+                spans.append(f'<span title="{titulo}" style="background:{cor}{alfa:02x};border-radius:3px">'
+                             f'{_h.escape(p)}</span>')
+            else:
+                spans.append(_h.escape(p))
+        return (f'<div class="cartao"><div style="color:#8b8a83;font-size:12px;margin-bottom:8px">Cada pedaço é colorido pelo '
+                f'especialista que a base mais acionou para escrevê-lo (mais forte = mais acionado; passe o mouse para ver %). '
+                f'{legenda}</div><pre style="white-space:pre-wrap;margin:0;font-size:14px;color:#f0efec">'
+                f'{_h.escape(prompt)}{"".join(spans)}</pre></div>')
+    except Exception:
+        return "<pre>" + traceback.format_exc() + "</pre>"
+    finally:
+        nucleo.TRAVA.release()
+
+
+def ver_cerebro(nome_ia):
+    if not nome_ia:
+        return "", gr.update(visible=False), gr.update(visible=False)
+    r = ReceitaCerebro.abrir(SAIDAS / nome_ia)
+    ok = bool(r.resultados.get("assuntos"))
+    return (relatorio_md := (SAIDAS / nome_ia / "resultado.md").read_text(encoding="utf-8")), \
+        gr.update(value=grafico_cerebro(r) if ok else None, visible=ok), gr.update(value=grafico_uso(r) if ok else None, visible=ok)
 
 # ----------------------------------------------------------------------------- interface
 
@@ -507,6 +638,54 @@ with gr.Blocks(title="Costureiro") as app:
                 g_curva = gr.Plot(visible=False, show_label=False)
             resultado = gr.Markdown()
 
+        with gr.Tab("🧠 Modo cérebro"):
+            gr.HTML('<div class="cartao" style="margin-bottom:10px"><b>Especialistas sob demanda.</b> Uma IA <b>base</b> conversa e '
+                    'interpreta. Numa camada dela, um <i>portão</i> decide, palavra por palavra, se precisa chamar um '
+                    '<b>especialista</b> — um bloco de camadas de outra IA (ex.: as camadas de código do Coder). '
+                    'A pergunta vai traduzida para o especialista, a resposta volta traduzida e é somada ao pensamento da base. '
+                    'Uma pequena multa faz o portão só acionar quando ajuda.</div>')
+            with gr.Row():
+                c_nome = gr.Textbox(label="Nome da IA nova", value="cerebro-codigo-matematica", scale=2)
+                c_base = gr.Dropdown(SUGESTOES, value="Qwen/Qwen2.5-0.5B-Instruct", allow_custom_value=True,
+                                     label="IA base (conversa e interpreta)", scale=3)
+                c_camada = gr.Slider(1, 40, value=12, step=1, label="Camada da base que consulta")
+            c_esp = []
+            padroes_esp = [("código", "Qwen/Qwen2.5-Coder-0.5B-Instruct", 6, 17),
+                           ("matemática", "Qwen/Qwen2.5-Math-1.5B-Instruct", 8, 21)]
+            for i, (n_, m_, a_, b_) in enumerate(padroes_esp):
+                with gr.Row():
+                    c_esp += [gr.Textbox(label=f"especialista {i + 1}", value=n_, scale=1),
+                              gr.Dropdown(SUGESTOES, value=m_, allow_custom_value=True, label="IA", scale=3),
+                              gr.Number(label="da camada", value=a_, precision=0, scale=1),
+                              gr.Number(label="até a camada", value=b_, precision=0, scale=1)]
+            gr.HTML("<div style='color:#8b8a83;font-size:13px'>Dica: use a análise da aba ① para escolher as camadas mais "
+                    "importantes de cada especialista no assunto dele. Os assuntos e textos também vêm da aba ①. "
+                    "Deixe a IA do especialista 2 vazia para usar só um.</div>")
+            with gr.Row():
+                c_epocas = gr.Slider(1, 10, value=4, step=1, label="Épocas")
+                c_esparsidade = gr.Slider(0, 0.1, value=0.02, step=0.005, label="Multa por acionar à toa")
+            with gr.Row():
+                c_btn = gr.Button("🧠 Criar IA com especialistas", variant="primary", size="lg", scale=4)
+                c_parar = gr.Button("Parar", size="lg", scale=1)
+            c_barra = gr.HTML()
+            with gr.Accordion("Detalhes do andamento", open=False):
+                c_log = gr.Textbox(lines=10, max_lines=20, show_label=False, autoscroll=True)
+            with gr.Row():
+                c_g1 = gr.Plot(visible=False, show_label=False)
+                c_g2 = gr.Plot(visible=False, show_label=False)
+            c_res = gr.Markdown()
+            gr.HTML('<div class="passo" style="margin-top:16px">conversar e ver quem foi acionado</div>')
+            with gr.Row():
+                c_escolha = gr.Dropdown(listar_cerebros(), label="IA do modo cérebro", scale=5)
+                c_atual = gr.Button("↻ atualizar", scale=1)
+            c_prompt = gr.Textbox(label="Escreva o começo — a IA continua", lines=3,
+                                  value="Pergunta: quanto é a derivada de x^3?\nResposta em Python:\n")
+            with gr.Row():
+                c_n = gr.Slider(10, 300, value=100, step=10, label="Tamanho da resposta")
+                c_temp = gr.Slider(0, 1.2, value=0, step=0.1, label="Criatividade")
+            c_gerar = gr.Button("Gerar", variant="primary")
+            c_saida = gr.HTML()
+
         with gr.Tab("④ Conversar"):
             with gr.Row():
                 escolha = gr.Dropdown(listar_ias(), label="IA nova", scale=5)
@@ -524,6 +703,14 @@ with gr.Blocks(title="Costureiro") as app:
             with gr.Row():
                 saida1 = gr.Textbox(label="só a IA que lê", lines=8)
                 saida2 = gr.Textbox(label="só a IA que escreve", lines=8)
+
+    c_btn.click(criar_cerebro_ui, [c_nome, c_base, c_camada, *c_esp, *assuntos, c_epocas, c_esparsidade],
+                [c_log, c_barra, c_res, c_g1, c_g2, c_escolha])
+    c_parar.click(lambda: _parar.set())
+    c_atual.click(lambda: gr.update(choices=listar_cerebros()), None, c_escolha)
+    c_escolha.input(ver_cerebro, c_escolha, [c_res, c_g1, c_g2])
+    c_gerar.click(conversar_cerebro, [c_escolha, c_prompt, c_n, c_temp], c_saida)
+    app.load(lambda: gr.update(choices=listar_cerebros()), None, c_escolha)
 
     def mostrar_ias(n):
         return [gr.update(visible=i < int(n)) for i in range(MAX_PARTES)]
@@ -546,7 +733,7 @@ with gr.Blocks(title="Costureiro") as app:
                      [log, barra, resultado, g_res, g_curva, escolha])
     b_parar.click(lambda: _parar.set())
     b_atual.click(lambda: gr.update(choices=listar_ias()), None, escolha)
-    escolha.change(ver_ia, escolha, [resumo_ia, g_ia])
+    escolha.input(ver_ia, escolha, [resumo_ia, g_ia])
     b_gerar.click(conversar, [escolha, prompt, n_tok, temp, comparar], [saida, saida1, saida2])
 
 if __name__ == "__main__":

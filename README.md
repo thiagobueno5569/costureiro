@@ -64,6 +64,7 @@ python app.py               # abre em http://127.0.0.1:7861   (no Windows: ABRIR
 | **① Escolher e analisar** | Mede no que cada IA é boa, em bits por caractere por assunto. Mostra um **mapa das melhores partes**: desliga cada camada e mede quanto a IA piora sem ela, em cada assunto. No fim, recomenda qual IA deve escrever a resposta. |
 | **② Partes** | Escolhe as camadas de cada IA, com um desenho da IA nova que se atualiza ao mexer. O botão *achar o melhor ponto de corte* testa vários pontos só com a rotação e marca o melhor num gráfico. |
 | **③ Costurar** | Treina os tradutores no texto do foco, com andamento ao vivo, curva de aprendizado e comparação da IA nova contra as originais em cada assunto. |
+| **🧠 Modo cérebro** | Uma IA base com especialistas sob demanda (veja abaixo). Mostra quanto a base aciona cada especialista em cada assunto. |
 | **④ Conversar** | Gera texto com a IA nova, lado a lado com as originais. |
 
 Também dá para usar pela linha de comando:
@@ -74,6 +75,19 @@ python cli.py --a Qwen/Qwen2.5-Coder-0.5B-Instruct --b Qwen/Qwen2.5-Math-1.5B-In
 ```
 
 A IA nova é salva como uma **receita** (`receita.json`, que guarda quais IAs e quais camadas) mais os **tradutores** (`tradutores.pt`).
+
+---
+
+## 🧠 Modo cérebro: especialistas sob demanda
+
+Na costura simples, o texto passa sempre pelas duas IAs, uma depois da outra. No **modo cérebro**, uma IA **base** (a que conversa e interpreta) roda inteira. Numa camada dela, um **portão** decide, palavra por palavra, se precisa chamar um **especialista**: um bloco de camadas de outra IA, por exemplo as camadas de código do Coder ou as de matemática do Math. É um *Mixture-of-Experts* feito de IAs diferentes.
+
+$$g_k = \sigma(\text{portão}_k(x)),\qquad x \leftarrow x + \sum_k g_k \cdot T^{\text{volta}}_k\Big(\text{bloco}_k\big(T^{\text{ida}}_k(x)\big)\Big)$$
+
+- $T^{\text{ida}}$ começa como a rotação de Procrustes. $T^{\text{volta}}$ começa em zero, então no início a IA é exatamente a base.
+- O treino minimiza o erro da base **mais uma multa** $\lambda\sum_k \bar g_k$, para o portão só acionar o especialista quando isso ajuda.
+- O especialista fica na memória só com as camadas que usa. As outras são podadas.
+- Na conversa, cada pedaço de texto aparece **colorido pelo especialista que a base acionou** para escrevê-lo.
 
 ---
 
@@ -117,6 +131,7 @@ $$\text{imp}(\ell, a) = \text{BPC}_a(\text{sem } \ell) - \text{BPC}_a(\text{mode
 
 - [ ] Treinar com 10 a 50× mais texto e medir quanto a costura chega perto da IA inteira
 - [x] Resultado da costura **Coder + Math** (programação + matemática)
+- [ ] Modo cérebro com as IAs de verdade: base Qwen2.5-0.5B + especialistas Coder e Math
 - [ ] Medir em problemas de outro estilo (não GSM8K), para separar adaptação de raciocínio
 - [ ] **Espaço comum:** um codificador e um decodificador por IA, para que qualquer par converse sem treinar um tradutor por par
 - [ ] Transplantar especialistas de um MoE para outro através do tradutor (ligação com o [fatiador](https://github.com/thiagobueno5569/fatiador))
