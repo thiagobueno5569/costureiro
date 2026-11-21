@@ -225,14 +225,25 @@ def grafico_curva(r: Receita):
 
 # ----------------------------------------------------------------------------- ações
 
+OCUPADO = ("⏳ As IAs estão ocupadas com outra tarefa (análise, busca do corte, costura ou conversa). "
+           "Espere ela terminar e tente de novo.")
+
+
 def _em_fundo(fn, q):
+    """Roda fn numa thread, uma tarefa por vez (as IAs são compartilhadas)."""
     out = {}
 
     def t():
+        if not nucleo.TRAVA.acquire(blocking=False):
+            out["erro"] = OCUPADO
+            q.put(None)
+            return
         try:
             out["r"] = fn()
         except Exception:
             out["erro"] = traceback.format_exc()
+        finally:
+            nucleo.TRAVA.release()
         q.put(None)
     threading.Thread(target=t, daemon=True).start()
     return out
@@ -390,6 +401,8 @@ def ver_ia(nome_ia):
 def conversar(nome_ia, prompt, n, temp, comparar):
     if not nome_ia:
         return "Escolha uma IA nova (crie uma em ③ Costurar).", "", ""
+    if not nucleo.TRAVA.acquire(blocking=False):
+        return OCUPADO, "", ""
     try:
         import torch
         ia = IACosturada.abrir(SAIDAS / nome_ia, log=lambda *_: None)
@@ -406,6 +419,8 @@ def conversar(nome_ia, prompt, n, temp, comparar):
         return nova, (orig[0] if orig else ""), (orig[1] if len(orig) > 1 else "")
     except Exception:
         return traceback.format_exc(), "", ""
+    finally:
+        nucleo.TRAVA.release()
 
 
 # ----------------------------------------------------------------------------- interface

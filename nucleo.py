@@ -26,6 +26,7 @@ from __future__ import annotations
 import json
 import math
 import random
+import threading
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -35,6 +36,9 @@ import torch
 import torch.nn as nn
 
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
+# As IAs ficam carregadas uma vez só e são compartilhadas. Duas tarefas ao mesmo tempo (ex.: analisar
+# enquanto costura) misturariam os ganchos de injeção uma da outra -> só uma tarefa por vez.
+TRAVA = threading.Lock()
 DT = torch.float16 if DEV == "cuda" else torch.float32
 
 
@@ -189,6 +193,9 @@ def rodar_parte(m, ids, inicio: int, fim: int, entrada: torch.Tensor | None):
         def pre(mod, a, kw):
             hs = kw.get("hidden_states", a[0] if a else None)
             novo = entrada.to(hs.dtype).unsqueeze(0)
+            if novo.shape[1] != hs.shape[1]:
+                raise RuntimeError(f"injeção com {novo.shape[1]} posições numa sequência de {hs.shape[1]} "
+                                   "(duas tarefas usando a mesma IA ao mesmo tempo?)")
             if "hidden_states" in kw:
                 kw["hidden_states"] = novo
                 return a, kw
@@ -216,6 +223,9 @@ def logits_final(m, ids, inicio: int, entrada: torch.Tensor | None):
         def pre(mod, a, kw):
             hs = kw.get("hidden_states", a[0] if a else None)
             novo = entrada.to(hs.dtype).unsqueeze(0)
+            if novo.shape[1] != hs.shape[1]:
+                raise RuntimeError(f"injeção com {novo.shape[1]} posições numa sequência de {hs.shape[1]} "
+                                   "(duas tarefas usando a mesma IA ao mesmo tempo?)")
             if "hidden_states" in kw:
                 kw["hidden_states"] = novo
                 return a, kw
