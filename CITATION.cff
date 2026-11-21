@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use Costureiro, please cite it as below."
+title: "Costureiro: stitching parts of different LLMs through a learned change of basis"
+authors:
+  - family-names: "Bueno da Silva"
+    given-names: "Thiago"
+    affiliation: "Universidade Federal de São João del-Rei (UFSJ)"
+repository-code: "https://github.com/thiagobueno5569/costureiro"
+url: "https://thiagobueno5569.github.io/costureiro/"
+license: MIT
+date-released: 2026-11-21
+keywords: [llm, model stitching, representation alignment, procrustes, mixture of experts]
