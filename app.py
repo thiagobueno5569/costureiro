@@ -205,7 +205,9 @@ def grafico_resultado(r: Receita):
                 hovertemplate="%{x}: %{y:.3f} bits/caractere<extra>IA nova</extra>")
     fig.update_layout(barmode="group", bargap=0.3, bargroupgap=0.08)
     fig.update_yaxes(title="bits por caractere (menor = melhor)", rangemode="tozero")
-    return _layout(fig, "Resultado: IA nova contra as originais")
+    fig = _layout(fig, "Resultado: IA nova contra as originais", 360)
+    fig.update_layout(legend=dict(orientation="h", y=-0.18, x=0, xanchor="left"), margin=dict(b=80))
+    return fig
 
 
 def grafico_curva(r: Receita):
@@ -299,7 +301,36 @@ def sugerir(n, m1, m2, a1, c1):
            gr.update(value=grafico_cortes(r["curva"]), visible=True)]
 
 
+def barra_progresso(p: dict | None, inicio: float) -> str:
+    """Barra de progresso do treino em HTML."""
+    import time as _t
+    if not p:
+        return ""
+    frac = max(0.0, min(1.0, p.get("fracao", 0)))
+    decorrido = _t.time() - inicio
+    fase = {"carregando": "Carregando as IAs", "preparando": "Preparando o super agente",
+            "treinando": "Treinando o super agente", "medindo": "Medindo nos textos de teste",
+            "pronto": "Pronto!"}.get(p.get("fase"), "")
+    detalhe = p.get("texto", "")
+    sep = " · " if detalhe else ""
+    if p.get("fase") == "treinando":
+        detalhe = (f"época {p['epoca']} de {p['epocas']} · trecho {p['passo']} de {p['passos']} · "
+                   f"erro no treino {p['bpc_treino']:.3f} bits/caractere")
+    restam = p.get("restam_s")
+    tempo = f"{decorrido / 60:.1f} min" + (f" · faltam ~{max(restam, 0) / 60:.0f} min" if restam is not None and frac < 1 else "")
+    ultimas = p.get("curva") or []
+    melhor = min((c["teste_bpc"] for c in ultimas), default=None)
+    melhor_txt = f"{sep}melhor no teste até agora: <b>{melhor:.3f}</b> bits/caractere" if melhor is not None else ""
+    return (f'<div class="cartao"><div style="display:flex;justify-content:space-between;align-items:baseline">'
+            f'<b style="font-size:16px">{fase}</b><span style="font-size:22px;font-weight:700">{100 * frac:.0f}%</span></div>'
+            f'<div style="height:10px;background:#2c2c2a;border-radius:999px;margin:10px 0;overflow:hidden">'
+            f'<div style="height:100%;width:{100 * frac:.1f}%;background:#3987e5;border-radius:999px;transition:width .4s"></div></div>'
+            f'<div style="color:#c3c2b7;font-size:13px">{detalhe}{melhor_txt}</div>'
+            f'<div style="color:#8b8a83;font-size:12px;margin-top:4px">{tempo}</div></div>')
+
+
 def costurar(nome, n, *v):
+    import time as _t
     _parar.clear()
     n = int(n)
     modelos, lim = v[:MAX_PARTES], v[MAX_PARTES:MAX_PARTES * 3]
@@ -311,18 +342,35 @@ def costurar(nome, n, *v):
                     [Parte(modelos[i].strip(), int(lim[2 * i]), int(lim[2 * i + 1])) for i in range(n)],
                     assuntos, max_tok=int(max_tok), epocas=int(epocas), lr=float(lr))
     except Exception as e:
-        yield [f"Erro na receita: {e}", ""] + nada
+        yield [f"Erro na receita: {e}", "", ""] + nada
         return
     pasta = SAIDAS / "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in r.nome)
-    q, log = queue.Queue(), []
-    out = _em_fundo(lambda: nucleo.costurar(r, pasta, log=q.put, parar=_parar.is_set), q)
-    while (msg := q.get()) is not None:
-        log.append(msg)
-        yield ["\n".join(log[-60:]), ""] + nada
+    q, log, inicio = queue.Queue(), [], _t.time()
+    prog = {"fase": "carregando", "fracao": 0.01, "texto": "lendo os textos e carregando as IAs na placa"}
+    yield ["", barra_progresso(prog, inicio), ""] + nada
+    out = _em_fundo(lambda: nucleo.costurar(r, pasta, log=lambda m: q.put(("log", m)), parar=_parar.is_set,
+                                            progresso=lambda p: q.put(("prog", p))), q)
+    n_curva = 0
+    while (item := q.get()) is not None:
+        tipo, conteudo = item
+        curva_upd = gr.update()
+        if tipo == "log":
+            log.append(conteudo)
+        else:
+            prog = conteudo
+            c = prog.get("curva") or []
+            if len(c) != n_curva and c:      # nova época medida: atualiza o gráfico de aprendizado ao vivo
+                n_curva = len(c)
+                vista = Receita(r.nome, r.partes, resultados={"curva": list(c)})   # cópia: não mexe na receita do treino
+                curva_upd = gr.update(value=grafico_curva(vista), visible=True)
+        yield ["\n".join(log[-60:]), barra_progresso(prog, inicio), "", gr.update(), curva_upd, gr.update()]
     if "erro" in out:
-        yield ["\n".join(log + ["", out["erro"]]), ""] + nada
+        yield ["\n".join(log + ["", out["erro"]]), barra_progresso(prog, inicio), ""] + nada
         return
-    yield ["\n".join(log[-60:]), (pasta / "resultado.md").read_text(encoding="utf-8"),
+    r = Receita.abrir(pasta)
+    yield ["\n".join(log[-60:]), barra_progresso({"fase": "pronto", "fracao": 1, "curva": r.resultados.get("curva"),
+                                                    "texto": f"IA nova salva em ias_novas/{pasta.name}"}, inicio),
+           (pasta / "resultado.md").read_text(encoding="utf-8"),
            gr.update(value=grafico_resultado(r), visible=True), gr.update(value=grafico_curva(r), visible=True),
            gr.update(choices=listar_ias(), value=pasta.name)]
 
@@ -436,7 +484,9 @@ with gr.Blocks(title="Costureiro") as app:
             with gr.Row():
                 b_costurar = gr.Button("🧵 Costurar", variant="primary", size="lg", scale=4)
                 b_parar = gr.Button("Parar", size="lg", scale=1)
-            log = gr.Textbox(label="Andamento", lines=10, max_lines=20, autoscroll=True)
+            barra = gr.HTML()
+            with gr.Accordion("Detalhes do andamento", open=False):
+                log = gr.Textbox(label="Andamento", lines=10, max_lines=20, autoscroll=True, show_label=False)
             with gr.Row():
                 g_res = gr.Plot(visible=False, show_label=False)
                 g_curva = gr.Plot(visible=False, show_label=False)
@@ -478,7 +528,7 @@ with gr.Blocks(title="Costureiro") as app:
     b_sugerir.click(sugerir, [n_partes, modelos[0], modelos[1], assuntos[0], assuntos[1]],
                     [log_sug, limites[1], limites[2], g_cortes])
     b_costurar.click(costurar, [nome, n_partes, *modelos, *limites, *assuntos, epocas, lr, max_tok],
-                     [log, resultado, g_res, g_curva, escolha])
+                     [log, barra, resultado, g_res, g_curva, escolha])
     b_parar.click(lambda: _parar.set())
     b_atual.click(lambda: gr.update(choices=listar_ias()), None, escolha)
     escolha.change(ver_ia, escolha, [resumo_ia, g_ia])

@@ -432,7 +432,8 @@ def dados_por_assunto(receita: Receita, rng: random.Random):
     return treino, teste
 
 
-def costurar(receita: Receita, pasta_saida: Path, log: Callable[[str], None] = print, parar=lambda: False):
+def costurar(receita: Receita, pasta_saida: Path, log: Callable[[str], None] = print, parar=lambda: False,
+             progresso: Callable[[dict], None] = lambda p: None):
     """Cria a IA nova: inicia os tradutores, treina, mede e salva. Retorna o dicionário de resultados."""
     t0 = time.time()
     rng = random.Random(0)
@@ -456,6 +457,7 @@ def costurar(receita: Receita, pasta_saida: Path, log: Callable[[str], None] = p
     tr = [d for a in treino_txt for d in prep(treino_txt[a])]
     te = {a: prep(teste_txt[a]) for a in teste_txt}
 
+    progresso({"fase": "preparando", "fracao": 0.02, "texto": "começando pela rotação de Procrustes"})
     L("super agente: começando pela rotação de Procrustes...")
     ia.iniciar(rng.sample(tr, min(len(tr), 150)))
 
@@ -476,6 +478,7 @@ def costurar(receita: Receita, pasta_saida: Path, log: Callable[[str], None] = p
     for ep in range(receita.epocas):
         rng.shuffle(tr)
         acc, ch = 0.0, 0
+        t_ep = time.time()
         for k, d in enumerate(tr):
             if parar():
                 L("parado pelo usuário")
@@ -485,6 +488,16 @@ def costurar(receita: Receita, pasta_saida: Path, log: Callable[[str], None] = p
             torch.nn.utils.clip_grad_norm_(ia.tradutores.parameters(), 1.0)
             opt.step(); opt.zero_grad(set_to_none=True); sched.step()
             acc += l.item(); ch += d["chars"]
+            if k % 5 == 0 or k == len(tr) - 1:
+                feitos = ep * len(tr) + k + 1
+                por_passo = (time.time() - t_ep) / (k + 1)
+                restam = (passos - feitos) * por_passo + (receita.epocas - ep) * 0.08 * len(tr) * por_passo
+                progresso({"fase": "treinando", "fracao": 0.05 + 0.9 * feitos / passos, "epoca": ep + 1,
+                           "epocas": receita.epocas, "passo": k + 1, "passos": len(tr),
+                           "bpc_treino": acc / max(ch, 1) / math.log(2), "restam_s": restam,
+                           "curva": res["curva"]})
+        progresso({"fase": "medindo", "fracao": 0.05 + 0.9 * (ep + 1) * len(tr) / passos, "epoca": ep + 1,
+                   "epocas": receita.epocas, "texto": "medindo nos textos de teste", "curva": res["curva"]})
         b = ia.bpc(todos_te)
         res["curva"].append({"epoca": ep + 1, "treino_bpc": acc / max(ch, 1) / math.log(2), "teste_bpc": b})
         marca = ""
@@ -498,6 +511,7 @@ def costurar(receita: Receita, pasta_saida: Path, log: Callable[[str], None] = p
     for a in te:
         res["assuntos"][a]["costurada"] = ia.bpc(te[a])
     res["minutos"] = (time.time() - t0) / 60
+    progresso({"fase": "pronto", "fracao": 1.0, "curva": res["curva"], "texto": "IA nova salva"})
     receita.resultados = res
     ia.salvar(pasta_saida)
     (Path(pasta_saida) / "resultado.md").write_text(relatorio(receita), encoding="utf-8")
