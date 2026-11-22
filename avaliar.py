@@ -188,7 +188,8 @@ def corrigir(tarefa: str, item: dict, resposta: str) -> bool:
 # ============================================================================ tudo
 
 def avaliar(pasta_ia: Path, tarefas: list[str], n: int = 0, extras: list[str] = (), log=print,
-            saida: Path | None = None, so_originais: bool = False) -> dict:
+            saida: Path | None = None, so_originais: bool = False, sem_originais: bool = False,
+            fatia: tuple[int, int] | None = None) -> dict:
     pasta_ia = Path(pasta_ia)
     if not (pasta_ia / "receita.json").exists():
         raise SystemExit(f"não achei {pasta_ia / 'receita.json'} — use a pasta de uma IA em ias_novas/")
@@ -211,12 +212,16 @@ def avaliar(pasta_ia: Path, tarefas: list[str], n: int = 0, extras: list[str] = 
         modelos = [] if so_originais else [("costurada", lambda: Costurada(pasta_ia))]
         originais = [p.modelo for p in r.partes]
         partes = [p.__dict__ for p in r.partes]
-    for nm in dict.fromkeys(originais):
+    for nm in ([] if sem_originais else dict.fromkeys(originais)):
         modelos.append((nm, lambda nm=nm: Original(nm)))
     for e in extras:
         modelos.append((e, lambda nm=e: Original(nm)))
     dados = {t: carregar_tarefa(t)[: n or None] for t in tarefas}
-    res = {"ia": str(pasta_ia), "partes": partes, "tarefas": {}, "detalhes": {}}
+    if fatia:                                   # pedaço k de N (para rodar vários processos em paralelo)
+        k, N = fatia
+        dados = {t: v[len(v) * k // N: len(v) * (k + 1) // N] for t, v in dados.items()}
+    res = {"ia": str(pasta_ia), "partes": partes, "tarefas": {}, "detalhes": {}, "originais": list(dict.fromkeys(originais)),
+           "n": {t: len(dados[t]) for t in tarefas}}
     for chave, fabrica in modelos:
         nucleo.liberar_cache()
         m = fabrica()
@@ -324,18 +329,66 @@ def salvar(res: dict, saida: Path):
     saida.with_suffix(".md").write_text(relatorio(res), encoding="utf-8")
 
 
+def juntar(arquivos: list[Path], saida: Path) -> dict:
+    """Junta avaliações feitas em processos separados (uma por tarefa, ou IAs diferentes) e refaz as
+    réguas e o teste pareado. Itens são cortados para o menor n de cada tarefa."""
+    res = {"ia": "", "partes": [], "tarefas": {}, "detalhes": {}, "originais": [], "n": {}}
+    for f in arquivos:
+        r = json.loads(Path(f).read_text(encoding="utf-8"))
+        if not res["ia"] or not r.get("partes"):
+            res["ia"] = res["ia"] or r["ia"]
+            res["partes"] = res["partes"] or r["partes"]
+        for m in r.get("originais", []):
+            if m not in res["originais"]:
+                res["originais"].append(m)
+        for t, por in r["detalhes"].items():
+            for m, det in por.items():
+                res["detalhes"].setdefault(t, {}).setdefault(m, {}).update({x["id"]: x for x in det})
+    dados = {}
+    for t, por in res["detalhes"].items():
+        for m in [m for m in por if m.startswith(("roteador", "oráculo"))]:
+            del por[m]
+        comuns = set.intersection(*(set(d) for d in por.values()))
+        itens = [it for it in carregar_tarefa(t) if it["id"] in comuns]     # ordem do conjunto
+        dados[t] = itens
+        res["n"][t] = len(itens)
+        for m in por:
+            por[m] = [por[m][it["id"]] for it in itens]
+            ok = sum(x["ok"] for x in por[m])
+            res["tarefas"].setdefault(t, {})[m] = {"acerto": ok / max(1, len(itens)), "n": len(itens), "s_por_item": 0}
+    if not res["originais"]:            # avaliações antigas: originais = quem não é IA nova nem régua
+        novos = ("costurada", "cérebro", "orquestra", "roteador", "oráculo")
+        res["originais"] = list(dict.fromkeys(m for por in res["detalhes"].values() for m in por if not m.startswith(novos)))
+    res.pop("pareado", None)
+    referencias(res, res["originais"], dados)
+    salvar(res, saida)
+    return res
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Costureiro · avaliação em tarefas de verdade")
-    ap.add_argument("--ia", required=True, help="pasta da IA nova (ias_novas/...): costurada ou do modo cérebro")
+    ap.add_argument("--ia", help="pasta da IA nova (ias_novas/...): costurada, cérebro ou orquestra")
+    ap.add_argument("--sem-originais", action="store_true", help="avalia só a IA nova (para juntar depois)")
+    ap.add_argument("--fatia", default=None, help="k/N: avalia só o pedaço k de N (para paralelizar)")
+    ap.add_argument("--juntar", nargs="+", help="arquivos .json de avaliações para juntar num relatório só")
     ap.add_argument("--tarefas", default="humaneval,mbpp,gsm8k")
     ap.add_argument("--n", type=int, default=0, help="quantos itens por tarefa (0 = todos)")
     ap.add_argument("--extra", action="append", default=[], help="outro modelo para comparar (repita)")
     ap.add_argument("--saida", default=None)
     a = ap.parse_args(argv)
+    if a.juntar:
+        saida = Path(a.saida or AQUI / "resultados" / "avaliacao_juntada")
+        res = juntar([Path(x) for x in a.juntar], saida)
+        print(relatorio(res))
+        print(f"\nsalvo em {saida.with_suffix('.md')}")
+        return
+    if not a.ia:
+        ap.error("--ia é obrigatório (ou use --juntar)")
     pasta = Path(a.ia)
     saida = Path(a.saida) if a.saida else AQUI / "resultados" / f"avaliacao_{pasta.name}"
     res = avaliar(pasta, [t.strip() for t in a.tarefas.split(",") if t.strip()], a.n, a.extra,
-                  log=lambda m: print(m, flush=True), saida=saida)
+                  log=lambda m: print(m, flush=True), saida=saida, sem_originais=a.sem_originais,
+                  fatia=tuple(int(x) for x in a.fatia.split("/")) if a.fatia else None)
     print("\n" + relatorio(res))
     print(f"\nsalvo em {saida.with_suffix('.md')}")
 
