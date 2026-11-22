@@ -61,13 +61,14 @@ def trabalhos(n_gsm: int, pedacos_gsm: int, epocas: int, trechos: int) -> list[d
                       "cmd": [PY, "avaliar.py", "--ia", f"ias_novas/{nome}", "--tarefas", "gsm8k", "--n", str(n_gsm),
                               "--fatia", f"{k}/{pedacos_gsm}", *extra, "--saida", str(SAIDA / f"{nome}_gsm8k_{k}")]})
 
-    # 1) a orquestra que já existe (treinada ontem): avaliação completa, com os originais
-    avaliacoes("orq-coder-com-math", True, [])
-    # 2) controle: mesmo treino, mas o solista é o PRÓPRIO Coder. Separa "o Math ajudou" de "o treino no formato ajudou"
+    # treinos primeiro na fila (precisam de mais memória; as avaliações preenchem o resto da placa)
+    # controle: mesmo treino, mas o solista é o PRÓPRIO Coder. Separa "o Math ajudou" de "o treino no formato ajudou"
     treino("orq-coder-com-coder", CODER, CODER, epocas, trechos)
-    avaliacoes("orq-coder-com-coder", False, ["treino_orq-coder-com-coder"])
-    # 3) mais treino e mais dados (a matemática melhora com mais exemplos?)
+    # mais treino e mais dados (a matemática melhora com mais exemplos?)
     treino("orq-coder-com-math-longo", CODER, MATH, epocas + 1, trechos * 2)
+    # a orquestra que já existe (treinada ontem): avaliação completa, com os originais
+    avaliacoes("orq-coder-com-math", True, [])
+    avaliacoes("orq-coder-com-coder", False, ["treino_orq-coder-com-coder"])
     avaliacoes("orq-coder-com-math-longo", False, ["treino_orq-coder-com-math-longo"])
     return T
 
