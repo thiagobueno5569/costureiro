@@ -176,20 +176,31 @@ def montar(base: str, outros: list[str], assuntos_dos: list[str], saida: Path, t
 
 
 def treinar_roteador(pasta: Path, textos: dict[str, list[str]], passos: int = 600, lr: float = 3e-3, max_tok: int = 512,
-                     log=print, progresso=lambda f, t: None) -> dict:
+                     log=print, progresso=lambda f, t: None, dtype=None) -> dict:
     """Treina SÓ os roteadores (o resto fica congelado) com textos misturados de todos os assuntos."""
     from transformers import AutoModelForCausalLM, AutoTokenizer
     dev = "cuda" if torch.cuda.is_available() else "cpu"
-    dt = torch.bfloat16 if dev == "cuda" and torch.cuda.is_bf16_supported() else (torch.float16 if dev == "cuda" else torch.float32)
+    dt = dtype or (torch.bfloat16 if dev == "cuda" and torch.cuda.is_bf16_supported() else (torch.float16 if dev == "cuda" else torch.float32))
     tok = AutoTokenizer.from_pretrained(pasta)
     m = AutoModelForCausalLM.from_pretrained(pasta, dtype=dt).to(dev)
-    params = []
+    params, ganchos = [], []
+
+    def _entrada(mod, args):              # o roteador treina em float32; o resto do modelo segue em bf16/fp16
+        mod._dt_entrada = args[0].dtype
+        return (args[0].to(mod.weight.dtype),) + tuple(args[1:])
+
+    def _saida(mod, args, out):
+        volta = lambda t: t.to(mod._dt_entrada) if torch.is_tensor(t) and t.is_floating_point() else t
+        return tuple(volta(t) for t in out) if isinstance(out, tuple) else volta(out)
+
     for n, p in m.named_parameters():
         treina = n.endswith("mlp.gate.weight")
         p.requires_grad_(treina)
         if treina:
             p.data = p.data.float()
             params.append(p)
+            mod = m.get_submodule(n[: -len(".weight")])
+            ganchos += [mod.register_forward_pre_hook(_entrada), mod.register_forward_hook(_saida)]
     m.gradient_checkpointing_enable()
     m.enable_input_require_grads()
     rng = random.Random(0)
@@ -242,6 +253,8 @@ def treinar_roteador(pasta: Path, textos: dict[str, list[str]], passos: int = 60
             if n in estado:
                 p.copy_(estado[n])
     m.gradient_checkpointing_disable()
+    for g in ganchos:
+        g.remove()
     for p in params:
         p.data = p.data.to(dt)
     m.save_pretrained(pasta, safe_serialization=True)

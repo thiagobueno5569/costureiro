@@ -94,6 +94,9 @@ moe.montar(str(pa), [str(pc)], ["programação", "matemática"], saida, textos, 
 r = moe.treinar_roteador(saida, textos, passos=40, max_tok=64)
 print("roteador treinado:", r)
 assert r["perda_depois"] <= r["perda_antes"]
+# como na placa de vídeo: modelo em bf16, roteador em float32 (na RunPod isso quebrava)
+r16 = moe.treinar_roteador(saida, textos, passos=20, max_tok=64, dtype=torch.bfloat16)
+print("roteador treinado em bf16:", r16)
 M = AutoModelForCausalLM.from_pretrained(saida)
 print("abre de novo:", type(M).__name__)
 print("OK")

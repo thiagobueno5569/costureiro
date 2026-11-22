@@ -77,13 +77,13 @@ def trabalhos_uma_ia(n_gsm: int, pedacos_gsm: int, prof_mat: str) -> list[dict]:
     """Três jeitos de chegar a UMA IA (um .gguf) com o código do Coder e a matemática do Math."""
     F = "fusoes"
     T = [
-        {"nome": "ties", "gb": 2, "dep": [], "pular_se": AQUI / F / "ties-coder-math" / "ties.json",
+        {"nome": "ties", "gb": 2, "dep": [], "pular_se": AQUI / F / "ties-coder-math.q8_0.gguf",
          "cmd": [PY, "fusao_pesos.py", "--base", "Qwen/Qwen2.5-1.5B", "--modelo", CODER, "--modelo", MATH,
                  "--densidade", "0.5", "--saida", f"{F}/ties-coder-math", "--gguf", "q8_0"]},
-        {"nome": "destilada", "gb": 20, "dep": [], "pular_se": AQUI / F / "destilada-coder-math" / "destilacao.json",
+        {"nome": "destilada", "gb": 20, "dep": [], "pular_se": AQUI / F / "destilada-coder-math.q8_0.gguf",
          "cmd": [PY, "destilar_tarefas.py", "--aluno", CODER, "--prof-matematica", prof_mat, "--prof-codigo", CODER,
                  "--n-matematica", "4000", "--amostras-codigo", "4", "--saida", f"{F}/destilada-coder-math", "--gguf", "q8_0"]},
-        {"nome": "moe", "gb": 15, "dep": [], "pular_se": AQUI / F / "moe-coder-math" / "moe.json",
+        {"nome": "moe", "gb": 15, "dep": [], "pular_se": AQUI / F / "moe-coder-math.q8_0.gguf",
          "cmd": [PY, "moe.py", "--base", CODER, "--assunto-base", "programação", "--especialista", f"{MATH}=matemática",
                  "--passos-roteador", "800", "--saida", f"{F}/moe-coder-math", "--gguf", "q8_0"]},
     ]
@@ -129,13 +129,22 @@ def main():
     ap.add_argument("--desligar", action="store_true", help="desliga o pod do RunPod no fim (Stop)")
     ap.add_argument("--plano", default="orquestra", choices=["orquestra", "uma_ia"])
     ap.add_argument("--prof-matematica", default="Qwen/Qwen2.5-Math-7B-Instruct")
+    ap.add_argument("--so", nargs="+", default=None,
+                    help="roda só os trabalhos cujo nome começa com estes prefixos (ex.: --so moe aval_moe); "
+                         "dependências fora da lista contam como prontas")
     a = ap.parse_args()
     SAIDA.mkdir(parents=True, exist_ok=True)
     os.chdir(AQUI)
     preparar(a.plano, a.prof_matematica)
     fila = (trabalhos(a.n_gsm8k, a.pedacos_gsm8k, a.epocas, a.trechos) if a.plano == "orquestra"
             else trabalhos_uma_ia(a.n_gsm8k, a.pedacos_gsm8k, a.prof_matematica))
+    plano_todo = fila
     feitos, falhou, rodando = set(), set(), {}
+    if a.so:
+        fila = [j for j in fila if any(j["nome"].startswith(x) for x in a.so)]
+        nomes = {j["nome"] for j in fila}
+        feitos |= {d for j in fila for d in j["dep"] if d not in nomes}
+        log(f"só estes trabalhos: {', '.join(sorted(nomes))}")
     for j in fila:
         if j.get("pular_se") and Path(j["pular_se"]).exists():
             feitos.add(j["nome"]); log(f"pulando {j['nome']} (já existe)")
@@ -183,7 +192,9 @@ def main():
                     f"placas: {', '.join(f'{i}: {g:.0f} GB livres' for i, g in placas_livres())}")
 
     log(f"todos os trabalhos acabaram em {(time.time() - t0) / 60:.0f} min ({len(feitos)} ok, {len(falhou)} com falha)")
-    jsons = sorted(str(p) for p in SAIDA.glob("*.json"))
+    saidas = [Path(j["cmd"][j["cmd"].index("--saida") + 1]) for j in plano_todo
+              if j["nome"].startswith("aval_") and "--saida" in j["cmd"]]
+    jsons = sorted(str(s.with_suffix(".json")) for s in saidas if s.with_suffix(".json").exists())
     if jsons:
         subprocess.run([PY, "avaliar.py", "--juntar", *jsons, "--saida", str(SAIDA / "RESULTADO")], cwd=AQUI)
         log(f"relatório: {SAIDA / 'RESULTADO.md'}")
