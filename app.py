@@ -425,8 +425,11 @@ def conversar(nome_ia, prompt, n, temp, comparar):
                 x = tok(prompt, return_tensors="pt").to(next(m.parameters()).device)
                 with torch.no_grad():
                     o = m.generate(**x, max_new_tokens=int(n), do_sample=float(temp) > 0,
-                                   temperature=max(float(temp), 1e-5), pad_token_id=tok.eos_token_id)
-                orig.append(tok.decode(o[0][x["input_ids"].shape[1]:], skip_special_tokens=True))
+                                   temperature=max(float(temp), 1e-5), pad_token_id=tok.eos_token_id,
+                                   repetition_penalty=nucleo.PENALIDADE,
+                                   no_repeat_ngram_size=nucleo.NGRAMA)
+                orig.append(nucleo.cortar_parada(
+                    tok.decode(o[0][x["input_ids"].shape[1]:], skip_special_tokens=True))[0])
         return nova, (orig[0] if orig else ""), (orig[1] if len(orig) > 1 else "")
     except Exception:
         return traceback.format_exc(), "", ""

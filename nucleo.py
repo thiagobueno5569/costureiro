@@ -179,6 +179,43 @@ class _Parar(Exception):
         self.h = h
 
 
+# ----------------------------------------------------------------------------- geração sem "loop"
+# Modelos pequenos (e costurados) não são de chat: depois de responder, continuam o texto
+# inventando "# Exercício 1…" e repetem a mesma palavra para sempre. Três defesas:
+#   1. penalidade de repetição nos tokens já gerados
+#   2. proíbe repetir uma sequência de N tokens que já apareceu (no_repeat_ngram)
+#   3. para quando o texto começa outro bloco (nova pergunta, novo título, linhas em branco)
+
+PARADAS = ("\nPergunta:", "\nQuestion:", "\n# ", "\n## ", "\nExercício", "\nExercise", "\n\n\n")
+PENALIDADE = 1.3
+NGRAMA = 4
+
+
+def escolher_token(lg: torch.Tensor, historico: list[int], temperatura: float = 0.0,
+                   penalidade: float = PENALIDADE, ngrama: int = NGRAMA) -> int:
+    lg = lg.float().clone()
+    if historico and penalidade != 1.0:
+        idx = torch.tensor(sorted(set(historico)), device=lg.device)
+        v = lg[idx]
+        lg[idx] = torch.where(v > 0, v / penalidade, v * penalidade)
+    if ngrama and len(historico) >= ngrama - 1:
+        pref = tuple(historico[-(ngrama - 1):])
+        for i in range(len(historico) - ngrama + 1):
+            if tuple(historico[i:i + ngrama - 1]) == pref:
+                lg[historico[i + ngrama - 1]] = -float("inf")
+    if temperatura > 0:
+        return torch.multinomial(torch.softmax(lg / temperatura, -1), 1).item()
+    return lg.argmax().item()
+
+
+def cortar_parada(texto: str, paradas=PARADAS) -> tuple[str, bool]:
+    """Corta o texto no primeiro sinal de que a resposta acabou. Devolve (texto, parou)."""
+    cortes = [texto.find(p) for p in paradas if texto.find(p) > 0]
+    if not cortes:
+        return texto, False
+    return texto[:min(cortes)].rstrip(), True
+
+
 def _saida_tensor(out):
     return out[0] if isinstance(out, (tuple, list)) else out
 
@@ -385,16 +422,16 @@ class IACosturada(nn.Module):
                 self.r.max_tok, guarda = 4096, self.r.max_tok
                 d = self.preparar(s); self.r.max_tok = guarda
             lg = self._cadeia(d)[-1]
-            if temperatura > 0:
-                prox = torch.multinomial(torch.softmax(lg / temperatura, -1), 1).item()
-            else:
-                prox = lg.argmax().item()
+            prox = escolher_token(lg, gerados, temperatura)
             if prox == tok_f.eos_token_id:
                 break
             gerados.append(prox)
             # decodifica tudo junto: decodificar token por token quebra letras com acento ("resistância")
-            s = prompt + tok_f.decode(gerados).rstrip("\ufffd")
-        return tok_f.decode(gerados)
+            texto = tok_f.decode(gerados).rstrip("\ufffd")
+            if cortar_parada(texto)[1]:
+                break
+            s = prompt + texto
+        return cortar_parada(tok_f.decode(gerados))[0]
 
     # ---------------------------------------------------------------- salvar / abrir
     def salvar(self, pasta: Path):
@@ -846,11 +883,18 @@ class IACerebro(nn.Module):
         gerados, portoes = [], []
         for _ in range(n):
             lg = self.logits(ids[-1024:])[-1]
-            prox = (torch.multinomial(torch.softmax(lg / temperatura, -1), 1).item() if temperatura > 0 else lg.argmax().item())
+            prox = escolher_token(lg, gerados, temperatura)
             if prox == self.tok.eos_token_id:
                 break
             ids.append(prox); gerados.append(prox)
             portoes.append([] if self.ultimos_portoes is None else [float(v) for v in self.ultimos_portoes[:, -1]])
+            if cortar_parada(self.tok.decode(gerados))[1]:
+                break
+        # tira o pedaço que já começava outro bloco (ex.: "\n# Exercício")
+        texto_ok = cortar_parada(self.tok.decode(gerados))[0]
+        while gerados and len(self.tok.decode(gerados)) > len(texto_ok):
+            gerados.pop()
+            ids.pop()
         # portões finais de cada token gerado (lendo o texto inteiro uma vez)
         self.logits(ids[-1024:])
         final = [] if self.ultimos_portoes is None else self.ultimos_portoes[:, -len(gerados):].cpu().tolist() if gerados else []
