@@ -186,8 +186,10 @@ class _Parar(Exception):
 #   2. proíbe repetir uma sequência de N tokens que já apareceu (no_repeat_ngram)
 #   3. para quando o texto começa outro bloco (nova pergunta, novo título, linhas em branco)
 
-PARADAS = ("\nPergunta:", "\nQuestion:", "\n# ", "\n## ", "\nExercício", "\nExercise", "\n\n\n")
-PENALIDADE = 1.3
+# ("\n# " sozinho não serve: em Python é comentário)
+PARADAS = ("\nPergunta:", "\nQuestion:", "# Exercício", "# Exercise", "\nExercício", "\nExercise",
+           "```\n\n#", "\n\n\n")
+PENALIDADE = float(__import__("os").environ.get("COSTUREIRO_PENALIDADE", "1.1"))
 NGRAMA = 4
 
 
@@ -210,7 +212,8 @@ def escolher_token(lg: torch.Tensor, historico: list[int], temperatura: float = 
 
 def cortar_parada(texto: str, paradas=PARADAS) -> tuple[str, bool]:
     """Corta o texto no primeiro sinal de que a resposta acabou. Devolve (texto, parou)."""
-    cortes = [texto.find(p) for p in paradas if texto.find(p) > 0]
+    # quando a parada começa fechando um bloco de código (```), o ``` fica na resposta
+    cortes = [texto.find(p) + (3 if p.startswith("```") else 0) for p in paradas if texto.find(p) > 0]
     if not cortes:
         return texto, False
     return texto[:min(cortes)].rstrip(), True
