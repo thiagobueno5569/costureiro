@@ -1,0 +1,90 @@
+{
+ "nome": "orq-coder-com-coder",
+ "base": "Qwen/Qwen2.5-Coder-1.5B-Instruct",
+ "solistas": [
+  {
+   "modelo": "Qwen/Qwen2.5-Coder-1.5B-Instruct",
+   "ate": 16,
+   "nome": ""
+  }
+ ],
+ "camada": 18,
+ "assuntos": {},
+ "dados_de_tarefa": true,
+ "max_tok": 512,
+ "epocas": 2,
+ "lr": 0.001,
+ "oculto_mlp": 1024,
+ "max_trechos": 1500,
+ "peso_ce": 0.2,
+ "peso_portao": 0.2,
+ "criado": "2026-11-22 14:01",
+ "resultados": {
+  "assuntos": {
+   "programação": {
+    "inicio": {
+     "bpc": 0.466712559385351,
+     "uso": [
+      0.9820137619972229,
+      0.017986221238970757
+     ],
+     "prof_base": 0.4667325964913679,
+     "prof_Qwen2.5-Coder-1.5B-Instruct": 0.4667325964913679,
+     "melhor_de_cada_palavra": 0.4667325964913679
+    },
+    "fim": {
+     "bpc": 0.4454618951046287,
+     "uso": [
+      0.9770280718803406,
+      0.022971730679273605
+     ]
+    }
+   },
+   "matemática": {
+    "inicio": {
+     "bpc": 0.5312984449586232,
+     "uso": [
+      0.9820137619972229,
+      0.017986221238970757
+     ],
+     "prof_base": 0.5313094179099951,
+     "prof_Qwen2.5-Coder-1.5B-Instruct": 0.5313094179099951,
+     "melhor_de_cada_palavra": 0.5313094179099951
+    },
+    "fim": {
+     "bpc": 0.43440128431226405,
+     "uso": [
+      0.9827127456665039,
+      0.017287254333496094
+     ]
+    }
+   }
+  },
+  "curva": [
+   {
+    "epoca": 1,
+    "perda_treino": 1.0448173044893727,
+    "teste_bpc": 0.44766741340997046,
+    "uso": [
+     0.9912675023078918,
+     0.008732649497687817
+    ]
+   },
+   {
+    "epoca": 2,
+    "perda_treino": 1.034172990152015,
+    "teste_bpc": 0.4418879935893186,
+    "uso": [
+     0.9798702597618103,
+     0.0201294906437397
+    ]
+   }
+  ],
+  "nomes": [
+   "base",
+   "Qwen2.5-Coder-1.5B-Instruct"
+  ],
+  "minutos": 16.547987731297813
+ },
+ "tipo": "orquestra"
+}

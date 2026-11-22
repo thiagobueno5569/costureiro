@@ -1,0 +1,43 @@
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 4322.07it/s]
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 4083.60it/s]
+  orquestra (orq-coder-com-math-longo)     mbpp        10/257   60.0%  (5.0 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp        20/257   65.0%  (6.3 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp        30/257   60.0%  (5.6 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp        40/257   60.0%  (5.2 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp        50/257   64.0%  (5.0 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp        60/257   65.0%  (4.7 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp        70/257   62.9%  (5.0 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp        80/257   63.8%  (5.5 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp        90/257   63.3%  (5.6 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       100/257   67.0%  (5.7 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       110/257   66.4%  (5.9 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       120/257   65.0%  (6.4 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       130/257   63.8%  (6.7 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       140/257   64.3%  (6.7 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       150/257   64.7%  (6.7 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       160/257   64.4%  (7.0 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       170/257   61.8%  (7.1 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       180/257   61.7%  (7.2 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       190/257   62.6%  (7.0 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       200/257   62.0%  (7.0 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       210/257   62.9%  (7.0 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       220/257   61.4%  (7.0 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       230/257   60.0%  (7.0 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       240/257   60.8%  (6.8 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       250/257   60.8%  (6.7 s por item)
+  orquestra (orq-coder-com-math-longo)     mbpp       257/257   61.1%  (6.7 s por item)
+
+# Avaliação em tarefas de verdade · `orq-coder-com-math-longo`
+
+Partes: `Qwen/Qwen2.5-Coder-1.5B-Instruct` (base) · `Qwen/Qwen2.5-Math-1.5B-Instruct` [0–16]
+
+| modelo | MBPP sanitized (pass@1) |
+|---|---|
+| **orquestra (orq-coder-com-math-longo)** | 61.1% (n=257) |
+
+Decodificação gulosa, sem penalidade de repetição, mesmos prompts e paradas para todos. HumanEval/MBPP: o código gerado roda contra os testes oficiais. GSM8K: compara o número final.
+*Roteador simples*: escolhe a IA original inteira pela cara da pergunta (código → a de código). *Oráculo*: acerto se alguma original acertou (o teto de escolher a IA certa). Uma fusão só vale a pena se passar do roteador.
+
+Respostas de cada item: arquivo `.json` ao lado.
+
+salvo em /workspace/costureiro/resultados/bateria/orq-coder-com-math-longo_mbpp.md

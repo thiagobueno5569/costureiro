@@ -1,0 +1,99 @@
+{
+ "nome": "orq-coder-com-math-longo",
+ "base": "Qwen/Qwen2.5-Coder-1.5B-Instruct",
+ "solistas": [
+  {
+   "modelo": "Qwen/Qwen2.5-Math-1.5B-Instruct",
+   "ate": 16,
+   "nome": ""
+  }
+ ],
+ "camada": 21,
+ "assuntos": {},
+ "dados_de_tarefa": true,
+ "max_tok": 512,
+ "epocas": 3,
+ "lr": 0.001,
+ "oculto_mlp": 1024,
+ "max_trechos": 3000,
+ "peso_ce": 0.2,
+ "peso_portao": 0.2,
+ "criado": "2026-11-22 14:43",
+ "resultados": {
+  "assuntos": {
+   "programação": {
+    "inicio": {
+     "bpc": 0.49065572129183005,
+     "uso": [
+      0.9820137619972229,
+      0.017986219376325607
+     ],
+     "prof_base": 0.4910249564386794,
+     "prof_Qwen2.5-Math-1.5B-Instruct": 1.2288701656222525,
+     "melhor_de_cada_palavra": 0.4540525503483268
+    },
+    "fim": {
+     "bpc": 0.45972666604630263,
+     "uso": [
+      0.9058742523193359,
+      0.09412571787834167
+     ]
+    }
+   },
+   "matemática": {
+    "inicio": {
+     "bpc": 0.5249389166479709,
+     "uso": [
+      0.9820137619972229,
+      0.017986221238970757
+     ],
+     "prof_base": 0.5249312123517317,
+     "prof_Qwen2.5-Math-1.5B-Instruct": 0.6761638895906514,
+     "melhor_de_cada_palavra": 0.4210849928134703
+    },
+    "fim": {
+     "bpc": 0.43392993925483003,
+     "uso": [
+      0.7473066449165344,
+      0.2526933550834656
+     ]
+    }
+   }
+  },
+  "curva": [
+   {
+    "epoca": 1,
+    "perda_treino": 1.232858770221157,
+    "teste_bpc": 0.4581586817914147,
+    "uso": [
+     0.9040793180465698,
+     0.09592071920633316
+    ]
+   },
+   {
+    "epoca": 2,
+    "perda_treino": 1.1874286132681942,
+    "teste_bpc": 0.451629173844526,
+    "uso": [
+     0.848960280418396,
+     0.15103961527347565
+    ]
+   },
+   {
+    "epoca": 3,
+    "perda_treino": 1.1383742097085114,
+    "teste_bpc": 0.45124449433117675,
+    "uso": [
+     0.8265904784202576,
+     0.17340953648090363
+    ]
+   }
+  ],
+  "nomes": [
+   "base",
+   "Qwen2.5-Math-1.5B-Instruct"
+  ],
+  "minutos": 41.60500933726629
+ },
+ "tipo": "orquestra"
+}

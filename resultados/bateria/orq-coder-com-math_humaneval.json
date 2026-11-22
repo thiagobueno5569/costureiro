@@ -1,0 +1,2542 @@
+{
+ "ia": "ias_novas/orq-coder-com-math",
+ "partes": [
+  {
+   "modelo": "Qwen/Qwen2.5-Coder-1.5B-Instruct",
+   "inicio": 0,
+   "fim": "base"
+  },
+  {
+   "modelo": "Qwen/Qwen2.5-Math-1.5B-Instruct",
+   "inicio": 0,
+   "fim": 16
+  }
+ ],
+ "tarefas": {
+  "humaneval": {
+   "orquestra (orq-coder-com-math)": {
+    "acerto": 0.6097560975609756,
+    "n": 164,
+    "s_por_item": 3.81888021056245
+   },
+   "Qwen/Qwen2.5-Coder-1.5B-Instruct": {
+    "acerto": 0.4634146341463415,
+    "n": 164,
+    "s_por_item": 1.6122304884398855
+   },
+   "Qwen/Qwen2.5-Math-1.5B-Instruct": {
+    "acerto": 0.3353658536585366,
+    "n": 164,
+    "s_por_item": 2.184942895319404
+   },
+   "roteador simples (IA inteira por pergunta)": {
+    "acerto": 0.4634146341463415,
+    "n": 164,
+    "s_por_item": 0
+   },
+   "oráculo (alguma original acerta)": {
+    "acerto": 0.5609756097560976,
+    "n": 164,
+    "s_por_item": 0
+   }
+  }
+ },
+ "detalhes": {
+  "humaneval": {
+   "orquestra (orq-coder-com-math)": [
+    {
+     "id": "HumanEval/0",
+     "ok": true,
+     "resposta": "    for i in range(len(numbers)):\n        for j in range(i + 1, len(numbers)):\n            if abs(numbers[i] - numbers[j]) < threshold:\n                return True\n    return False\n\n"
+    },
+    {
+     "id": "HumanEval/1",
+     "ok": true,
+     "resposta": "    result = []\n    current_group = ''\n    depth = 0\n\n    for char in paren_string.replace(' ', ''):\n        if char == '(':\n            depth += 1\n            current_group += char\n        elif char == ')':\n            depth -= 1\n            current_group += char\n            if depth == 0:\n                result.append(current_group)\n                current_group = ''\n\n    return result\n\n"
+    },
+    {
+     "id": "HumanEval/2",
+     "ok": true,
+     "resposta": "    return number - int(number)\n"
+    },
+    {
+     "id": "HumanEval/3",
+     "ok": true,
+     "resposta": "    balance = 0\n    for op in operations:\n        balance += op\n        if balance < 0:\n            return True\n    return False\n\n"
+    },
+    {
+     "id": "HumanEval/4",
+     "ok": true,
+     "resposta": "    mean = sum(numbers) / len(numbers)\n    return sum(abs(x - mean) for x in numbers) / len(numbers)\n\n"
+    },
+    {
+     "id": "HumanEval/5",
+     "ok": false,
+     "resposta": "    return [numbers[i] for i in range(len(numbers)) if i % 2 == 0] + [numbers[i] for i in range(len(numbers)) if i % 2 == 1] + [delimeter] if len(numbers) % 2 == 1 else [numbers[i] for i in range(len(numbers)) if i % 2 == 0] + [delimeter] if len(numbers) % 2 == 0 else []\n\n"
+    },
+    {
+     "id": "HumanEval/6",
+     "ok": true,
+     "resposta": "    result = []\n    for group in paren_string.split():\n        level = 0\n        max_level = 0\n        for char in group:\n            if char == '(':\n                level += 1\n                max_level = max(max_level, level)\n            elif char == ')':\n                level -= 1\n        result.append(max_level)\n    return result\n\n"
+    },
+    {
+     "id": "HumanEval/7",
+     "ok": true,
+     "resposta": "    return [s for s in strings if substring in s]\n\n"
+    },
+    {
+     "id": "HumanEval/8",
+     "ok": true,
+     "resposta": "    if not numbers:\n        return (0, 1)\n    sum_val = sum(numbers)\n    product_val = 1\n    for num in numbers:\n        product_val *= num\n    return (sum_val, product_val)\n\n"
+    },
+    {
+     "id": "HumanEval/9",
+     "ok": true,
+     "resposta": "    if not numbers:\n        return []\n    rolling_max = [numbers[0]]\n    for num in numbers[1:]:\n        rolling_max.append(max(rolling_max[-1], num))\n    return rolling_max\n\n"
+    },
+    {
+     "id": "HumanEval/10",
+     "ok": true,
+     "resposta": "    if not string:\n        return string\n    for i in range(len(string)):\n        if is_palindrome(string[i:]):\n            return string + string[:i][::-1]\n    return string\n\n"
+    },
+    {
+     "id": "HumanEval/11",
+     "ok": true,
+     "resposta": "    return ''.join(str(int(a[i]) ^ int(b[i])) for i in range(len(a)))\n\n"
+    },
+    {
+     "id": "HumanEval/12",
+     "ok": true,
+     "resposta": "    if not strings:\n        return None\n    return max(strings, key=len)\n\n"
+    },
+    {
+     "id": "HumanEval/13",
+     "ok": true,
+     "resposta": "    while b:\n        a, b = b, a % b\n    return a\n"
+    },
+    {
+     "id": "HumanEval/14",
+     "ok": true,
+     "resposta": "    return [string[:i] for i in range(1, len(string) + 1)]\n\n"
+    },
+    {
+     "id": "HumanEval/15",
+     "ok": true,
+     "resposta": "    return ' '.join(map(str, range(n + 1)))\n"
+    },
+    {
+     "id": "HumanEval/16",
+     "ok": true,
+     "resposta": "    # Convert the string to lowercase to ignore case differences\n    lower_string = string.lower()\n    # Use a set to store unique characters\n    unique_characters = set(lower_string)\n    # Return the number of unique characters\n    return len(unique_characters)\n"
+    },
+    {
+     "id": "HumanEval/17",
+     "ok": true,
+     "resposta": "    return [4 if note == 'o' else 2 if note == 'o|' else 1 for note in music_string.split()]\n\n"
+    },
+    {
+     "id": "HumanEval/18",
+     "ok": true,
+     "resposta": "    count = 0\n    start = 0\n    while True:\n        start = string.find(substring, start)\n        if start == -1:\n            break\n        count += 1\n        start += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/19",
+     "ok": false,
+     "resposta": "    # convert string to list of numbers\n    numbers = numbers.split()\n    # convert list of numbers to list of integers\n    numbers = [int(num) for num in numbers]\n    # sort list of integers\n    numbers.sort()\n    # convert list of integers back to list of strings\n    numbers = [str(num) for num in numbers]\n    # join list of strings into a single string\n    return ' '.join(numbers)\n\n"
+    },
+    {
+     "id": "HumanEval/20",
+     "ok": false,
+     "resposta": "    if len(numbers) < 2:\n        raise ValueError(\"List must contain at least two elements\")\n    numbers.sort()\n    return numbers[0], numbers[-1]\n\n"
+    },
+    {
+     "id": "HumanEval/21",
+     "ok": true,
+     "resposta": "    min_val = min(numbers)\n    max_val = max(numbers)\n    return [(x - min_val) / (max_val - min_val) for x in numbers]\n\n"
+    },
+    {
+     "id": "HumanEval/22",
+     "ok": true,
+     "resposta": "    return [value for value in values if isinstance(value, int)]\n\n"
+    },
+    {
+     "id": "HumanEval/23",
+     "ok": true,
+     "resposta": "    return len(string)\n"
+    },
+    {
+     "id": "HumanEval/24",
+     "ok": true,
+     "resposta": "    for i in range(n // 2, 0, -1):\n        if n % i == 0:\n            return i\n    return 1\n"
+    },
+    {
+     "id": "HumanEval/25",
+     "ok": true,
+     "resposta": "    factors = []\n    # Divide n by 2 until n is odd\n    while n % 2 == 0:\n        factors.append(2)\n        n //= 2\n    # n must be odd at this point, so we can skip one element (Note i = i + 2)\n    for i in range(3, int(n**0.5) + 1, 2):\n        # While i divides n, append i and divide n\n        while n % i == 0:\n            factors.append(i)\n            n //= i\n    # This condition is to handle the case when n is a prime number greater than 2\n    if n > 2:\n        factors.append(n)\n    return factors\n\n"
+    },
+    {
+     "id": "HumanEval/26",
+     "ok": false,
+     "resposta": "    seen = set()\n    result = []\n    for num in numbers:\n        if num not in seen:\n            seen.add(num)\n            result.append(num)\n    return result\n\n"
+    },
+    {
+     "id": "HumanEval/27",
+     "ok": true,
+     "resposta": "    return ''.join(char.swapcase() for char in string)\n"
+    },
+    {
+     "id": "HumanEval/28",
+     "ok": true,
+     "resposta": "    return ''.join(strings)\n\n"
+    },
+    {
+     "id": "HumanEval/29",
+     "ok": true,
+     "resposta": "    return [s for s in strings if s.startswith(prefix)]\n\n"
+    },
+    {
+     "id": "HumanEval/30",
+     "ok": true,
+     "resposta": "    return [x for x in l if x > 0]\n"
+    },
+    {
+     "id": "HumanEval/31",
+     "ok": true,
+     "resposta": "    if n < 2:\n        return False\n    for i in range(2, int(n**0.5) + 1):\n        if n % i == 0:\n            return False\n    return True\n"
+    },
+    {
+     "id": "HumanEval/32",
+     "ok": false,
+     "resposta": "    if len(xs) % 2 != 0:\n        raise ValueError(\"xs must have even number of coefficients\")\n    if xs[-1] == 0:\n        raise ValueError(\"largest non zero coefficient must be non zero\")\n    if xs[0] == 0:\n        return 0\n    if xs[0] == 1:\n        return 1\n    if xs[0] == -1:\n        return -1\n    if xs[0] == 2:\n        return 2\n    if xs[0] == -2:\n        return -2\n    if xs[0] == 3:\n        return 3\n    if xs[0] == -3:\n        return -3\n    if xs[0] == 4:\n        return 4\n    if xs[0] == -4:\n        return -4\n    if xs[0] == 5:\n        return 5\n    if xs[0] == -5:\n        return -5\n    if xs[0] == 6:\n        return 6\n    if xs[0] == -6:\n        return -6\n    if xs[0] == 7:\n        return 7\n    if xs[0] == -7:\n        return -7\n    if xs[0] == 8:\n        return 8\n    if xs[0] == -8:\n        return -8\n    if xs[0] == 9:\n        return 9\n    if xs[0] == -9:\n        return -9\n    if xs[0] == 10:\n        return 10\n    if xs[0] == -10:\n        return -10\n    if xs[0] == 11:\n        return 11\n"
+    },
+    {
+     "id": "HumanEval/33",
+     "ok": false,
+     "resposta": "    return [x if i % 3 != 0 else sorted(x) for i, x in enumerate(l)]\n"
+    },
+    {
+     "id": "HumanEval/34",
+     "ok": true,
+     "resposta": "    return sorted(set(l))\n"
+    },
+    {
+     "id": "HumanEval/35",
+     "ok": true,
+     "resposta": "    return max(l)\n"
+    },
+    {
+     "id": "HumanEval/36",
+     "ok": true,
+     "resposta": "    count = 0\n    for i in range(1, n):\n        if i % 11 == 0 or i % 13 == 0:\n            count += str(i).count('7')\n    return count\n"
+    },
+    {
+     "id": "HumanEval/37",
+     "ok": false,
+     "resposta": "    return [l[i] if i % 2 else sorted(l[i:]) for i in range(len(l))]\n"
+    },
+    {
+     "id": "HumanEval/38",
+     "ok": false,
+     "resposta": "    # split string to groups. Each of length 3.\n    groups = [s[(3 * i):min((3 * i + 3), len(s))] for i in range((len(s) + 2) // 3)]\n    # cycle elements in each group. Unless group has fewer elements than 3.\n    groups = [(group[2:] + group[0]) if len(group) == 3 else group for group in groups]\n    return \"\".join(groups)\n\n"
+    },
+    {
+     "id": "HumanEval/39",
+     "ok": true,
+     "resposta": "    def is_prime(num):\n        if num <= 1:\n            return False\n        for i in range(2, int(num**0.5) + 1):\n            if num % i == 0:\n                return False\n        return True\n\n    def fibonacci(n):\n        a, b = 0, 1\n        for _ in range(n):\n            a, b = b, a + b\n        return a\n\n    count = 0\n    i = 0\n    while count < n:\n        fib_num = fibonacci(i)\n        if is_prime(fib_num):\n            count += 1\n        i += 1\n    return fib_num\n"
+    },
+    {
+     "id": "HumanEval/40",
+     "ok": true,
+     "resposta": "    # Sort the list to make it easier to find triplets\n    l.sort()\n    n = len(l)\n    for i in range(n - 2):\n        # Skip duplicate values\n        if i > 0 and l[i] == l[i - 1]:\n            continue\n        left, right = i + 1, n - 1\n        while left < right:\n            current_sum = l[i] + l[left] + l[right]\n            if current_sum == 0:\n                return True\n            elif current_sum < 0:\n                left += 1\n            else:\n                right -= 1\n    return False\n"
+    },
+    {
+     "id": "HumanEval/41",
+     "ok": true,
+     "resposta": "    # Since each car from one set will collide with each car from the other set,\n    # the total number of collisions is simply the square of the number of cars.\n    return n * n\n"
+    },
+    {
+     "id": "HumanEval/42",
+     "ok": true,
+     "resposta": "    return [x + 1 for x in l]\n"
+    },
+    {
+     "id": "HumanEval/43",
+     "ok": true,
+     "resposta": "    seen = set()\n    for num in l:\n        if -num in seen:\n            return True\n        seen.add(num)\n    return False\n"
+    },
+    {
+     "id": "HumanEval/44",
+     "ok": true,
+     "resposta": "    if base < 2 or base > 9:\n        raise ValueError(\"Base must be between 2 and 9.\")\n    result = \"\"\n    while x > 0:\n        remainder = x % base\n        result = str(remainder) + result\n        x = x // base\n    return result\n"
+    },
+    {
+     "id": "HumanEval/45",
+     "ok": true,
+     "resposta": "    return a * h / 2\n"
+    },
+    {
+     "id": "HumanEval/46",
+     "ok": true,
+     "resposta": "    if n == 0 or n == 1:\n        return 0\n    elif n == 2:\n        return 2\n    elif n == 3:\n        return 0\n    else:\n        a, b, c, d = 0, 0, 2, 0\n        for i in range(4, n + 1):\n            a, b, c, d = b, c, d, a + b + c + d\n        return d\n"
+    },
+    {
+     "id": "HumanEval/47",
+     "ok": true,
+     "resposta": "    l.sort()\n    n = len(l)\n    if n % 2 == 0:\n        return (l[n//2 - 1] + l[n//2]) / 2\n    else:\n        return l[n//2]\n"
+    },
+    {
+     "id": "HumanEval/48",
+     "ok": true,
+     "resposta": "    return text == text[::-1]\n"
+    },
+    {
+     "id": "HumanEval/49",
+     "ok": false,
+     "resposta": "    return pow(n, 2, p)\n"
+    },
+    {
+     "id": "HumanEval/50",
+     "ok": true,
+     "resposta": "    return \"\".join([chr(((ord(ch) - 5 - ord(\"a\")) % 26) + ord(\"a\")) for ch in s])\n\n"
+    },
+    {
+     "id": "HumanEval/51",
+     "ok": true,
+     "resposta": "    return ''.join([char for char in text if char.lower() not in 'aeiou'])\n"
+    },
+    {
+     "id": "HumanEval/52",
+     "ok": true,
+     "resposta": "    return all(x < t for x in l)\n"
+    },
+    {
+     "id": "HumanEval/53",
+     "ok": true,
+     "resposta": "    return x + y\n"
+    },
+    {
+     "id": "HumanEval/54",
+     "ok": false,
+     "resposta": "    return sorted(s0) == sorted(s1)\n"
+    },
+    {
+     "id": "HumanEval/55",
+     "ok": true,
+     "resposta": "    if n == 0:\n        return 0\n    elif n == 1:\n        return 1\n    else:\n        return fib(n-1) + fib(n-2)\n"
+    },
+    {
+     "id": "HumanEval/56",
+     "ok": true,
+     "resposta": "    count = 0\n    for bracket in brackets:\n        if bracket == \"<\":\n            count += 1\n        elif bracket == \">\":\n            count -= 1\n        if count < 0:\n            return False\n    return count == 0\n"
+    },
+    {
+     "id": "HumanEval/57",
+     "ok": true,
+     "resposta": "    return all(x <= y for x, y in zip(l, l[1:])) or all(x >= y for x, y in zip(l, l[1:]))\n\n"
+    },
+    {
+     "id": "HumanEval/58",
+     "ok": true,
+     "resposta": "    return sorted(set(l1) & set(l2))\n"
+    },
+    {
+     "id": "HumanEval/59",
+     "ok": false,
+     "resposta": "    # Start with the smallest prime number\n    factor = 2\n    # Divide n by factor as long as it is divisible\n    while n % factor == 0:\n        n //= factor\n    # If n is still greater than 2, it is a prime factor\n    if n > 2:\n        factor = n\n    return factor\n"
+    },
+    {
+     "id": "HumanEval/60",
+     "ok": true,
+     "resposta": "    return sum(range(1, n + 1))\n"
+    },
+    {
+     "id": "HumanEval/61",
+     "ok": true,
+     "resposta": "    stack = []\n    for bracket in brackets:\n        if bracket == '(':\n            stack.append(bracket)\n        elif bracket == ')':\n            if not stack:\n                return False\n            stack.pop()\n    return not stack\n"
+    },
+    {
+     "id": "HumanEval/62",
+     "ok": true,
+     "resposta": "    return [i * xs[i] for i in range(1, len(xs))]\n"
+    },
+    {
+     "id": "HumanEval/63",
+     "ok": true,
+     "resposta": "    if n == 0 or n == 1:\n        return 0\n    elif n == 2:\n        return 1\n    else:\n        a, b, c = 0, 0, 1\n        for _ in range(3, n + 1):\n            a, b, c = b, c, a + b + c\n        return c\n"
+    },
+    {
+     "id": "HumanEval/64",
+     "ok": true,
+     "resposta": "    count = 0\n    for char in s:\n        if char.lower() in 'aeiou':\n            count += 1\n    if s[-1].lower() == 'y':\n        count += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/65",
+     "ok": false,
+     "resposta": "    if shift > len(str(x)):\n        return str(x)[::-1]\n    return str(x)[shift:] + str(x)[:shift]\n"
+    },
+    {
+     "id": "HumanEval/66",
+     "ok": true,
+     "resposta": "    return sum(ord(c) for c in s if c.isupper())\n"
+    },
+    {
+     "id": "HumanEval/67",
+     "ok": false,
+     "resposta": "    # your code here\n    return s.count('a') + s.count('o') - n\n"
+    },
+    {
+     "id": "HumanEval/68",
+     "ok": true,
+     "resposta": "    if not arr:\n        return []\n    smallest_even = float('inf')\n    smallest_index = -1\n    for i, node in enumerate(arr):\n        if node % 2 == 0 and node < smallest_even:\n            smallest_even = node\n            smallest_index = i\n    if smallest_index == -1:\n        return []\n    return [smallest_even, smallest_index]\n"
+    },
+    {
+     "id": "HumanEval/69",
+     "ok": false,
+     "resposta": "    from collections import Counter\n    count = Counter(lst)\n    for k, v in count.items():\n        if k <= v:\n            return k\n    return -1\n"
+    },
+    {
+     "id": "HumanEval/70",
+     "ok": false,
+     "resposta": "    if not lst:\n        return []\n    sorted_list = []\n    while lst:\n        min_value = min(lst)\n        max_value = max(lst)\n        sorted_list.extend([min_value, max_value])\n        lst.remove(min_value)\n        lst.remove(max_value)\n    return sorted_list\n"
+    },
+    {
+     "id": "HumanEval/71",
+     "ok": false,
+     "resposta": "    if a + b <= c or a + c <= b or b + c <= a:\n        return -1\n    s = (a + b + c) / 2\n    area = math.sqrt(s * (s - a) * (s - b) * (s - c))\n    return round(area, 2)\n"
+    },
+    {
+     "id": "HumanEval/72",
+     "ok": true,
+     "resposta": "    return q == q[::-1] and sum(q) <= w\n"
+    },
+    {
+     "id": "HumanEval/73",
+     "ok": true,
+     "resposta": "    left, right = 0, len(arr) - 1\n    changes = 0\n    while left < right:\n        if arr[left] != arr[right]:\n            changes += 1\n        left += 1\n        right -= 1\n    return changes\n"
+    },
+    {
+     "id": "HumanEval/74",
+     "ok": false,
+     "resposta": "    return lst1 if sum(len(s) for s in lst1) < sum(len(s) for s in lst2) else lst2\n"
+    },
+    {
+     "id": "HumanEval/75",
+     "ok": true,
+     "resposta": "    if a < 2:\n        return False\n    prime_factors = []\n    for i in range(2, a + 1):\n        while a % i == 0:\n            prime_factors.append(i)\n            a //= i\n    if len(prime_factors) == 3:\n        return True\n    return False\n"
+    },
+    {
+     "id": "HumanEval/76",
+     "ok": true,
+     "resposta": "    if x == 1:\n        return True\n    if n == 1:\n        return False\n    if x % n != 0:\n        return False\n    while x % n == 0:\n        x //= n\n    return x == 1\n"
+    },
+    {
+     "id": "HumanEval/77",
+     "ok": false,
+     "resposta": "    return a == int(a ** (1/3)) ** 3\n"
+    },
+    {
+     "id": "HumanEval/78",
+     "ok": true,
+     "resposta": "    # Your code here\n    prime_hex_digits = {'2', '3', '5', '7', 'B', 'D'}\n    count = 0\n    for digit in num:\n        if digit in prime_hex_digits:\n            count += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/79",
+     "ok": true,
+     "resposta": "    binary = bin(decimal)[2:]  # Convert decimal to binary and remove the '0b' prefix\n    return f\"db{binary}db\"\n"
+    },
+    {
+     "id": "HumanEval/80",
+     "ok": true,
+     "resposta": "    if len(s) < 3:\n        return False\n    for i in range(len(s) - 2):\n        if s[i] == s[i + 1] or s[i] == s[i + 2] or s[i + 1] == s[i + 2]:\n            return False\n    return True\n"
+    },
+    {
+     "id": "HumanEval/81",
+     "ok": true,
+     "resposta": "    letter_grades = []\n    for grade in grades:\n        if grade == 4.0:\n            letter_grades.append('A+')\n        elif grade > 3.7:\n            letter_grades.append('A')\n        elif grade > 3.3:\n            letter_grades.append('A-')\n        elif grade > 3.0:\n            letter_grades.append('B+')\n        elif grade > 2.7:\n            letter_grades.append('B')\n        elif grade > 2.3:\n            letter_grades.append('B-')\n        elif grade > 2.0:\n            letter_grades.append('C+')\n        elif grade > 1.7:\n            letter_grades.append('C')\n        elif grade > 1.3:\n            letter_grades.append('C-')\n        elif grade > 1.0:\n            letter_grades.append('D+')\n        elif grade > 0.7:\n            letter_grades.append('D')\n        elif grade > 0.0:\n            letter_grades.append('D-')\n        else:\n            letter_grades.append('E')\n    return letter_grades\n"
+    },
+    {
+     "id": "HumanEval/82",
+     "ok": true,
+     "resposta": "    length = len(string)\n    if length < 2:\n        return False\n    for i in range(2, int(length**0.5) + 1):\n        if length % i == 0:\n            return False\n    return True\n"
+    },
+    {
+     "id": "HumanEval/83",
+     "ok": false,
+     "resposta": "    if n == 1:\n        return 1\n    else:\n        return 2 * 10 ** (n - 1) - 10 ** (n - 2)\n"
+    },
+    {
+     "id": "HumanEval/84",
+     "ok": false,
+     "resposta": "    # Convert the number to binary and sum the digits\n    binary_sum = bin(N).count('1')\n    return bin(binary_sum)[2:]\n"
+    },
+    {
+     "id": "HumanEval/85",
+     "ok": true,
+     "resposta": "    return sum(lst[i] for i in range(1, len(lst), 2) if lst[i] % 2 == 0)\n"
+    },
+    {
+     "id": "HumanEval/86",
+     "ok": true,
+     "resposta": "    # Split the string into words\n    words = s.split()\n    \n    # Sort each word and join them back into a string\n    sorted_words = [''.join(sorted(word)) for word in words]\n    \n    # Join the sorted words back into a sentence\n    return ' '.join(sorted_words)\n"
+    },
+    {
+     "id": "HumanEval/87",
+     "ok": false,
+     "resposta": "    return sorted([(i, j) for i, row in enumerate(lst) for j, x in enumerate(row) if x == x], key=lambda x: (x[0], -x[1]))\n"
+    },
+    {
+     "id": "HumanEval/88",
+     "ok": false,
+     "resposta": "    if not array:\n        return []\n    if sum(array[:1]) % 2 == 0:\n        array.sort(reverse=True)\n    else:\n        array.sort()\n    return array\n"
+    },
+    {
+     "id": "HumanEval/89",
+     "ok": true,
+     "resposta": "    alphabet = 'abcdefghijklmnopqrstuvwxyz'\n    encrypted = ''\n    for char in s:\n        if char in alphabet:\n            index = alphabet.index(char)\n            new_index = (index + 2 * 2) % 26\n            encrypted += alphabet[new_index]\n        else:\n            encrypted += char\n    return encrypted\n"
+    },
+    {
+     "id": "HumanEval/90",
+     "ok": false,
+     "resposta": "    if len(lst) < 2:\n        return None\n    lst.sort()\n    return lst[1]\n"
+    },
+    {
+     "id": "HumanEval/91",
+     "ok": false,
+     "resposta": "    count = 0\n    for sentence in S.split('.'):\n        if sentence.strip().startswith('I'):\n            count += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/92",
+     "ok": true,
+     "resposta": "    return all(isinstance(i, int) for i in [x, y, z]) and (x + y == z or y + z == x or z + x == y)\n"
+    },
+    {
+     "id": "HumanEval/93",
+     "ok": false,
+     "resposta": "    vowels = 'aeiouAEIOU'\n    encoded_message = ''\n    for char in message:\n        if char.isalpha():\n            if char.islower():\n                encoded_message += char.upper()\n            else:\n                encoded_message += char.lower()\n            if char in vowels:\n                next_vowel = vowels[(vowels.index(char) + 2) % len(vowels)]\n                encoded_message += next_vowel\n        else:\n            encoded_message += char\n    return encoded_message\n"
+    },
+    {
+     "id": "HumanEval/94",
+     "ok": false,
+     "resposta": "    # Your code here\n    pass\n"
+    },
+    {
+     "id": "HumanEval/95",
+     "ok": true,
+     "resposta": "    if not dict:\n        return False\n    lower_case = all(isinstance(key, str) and key.islower() for key in dict.keys())\n    upper_case = all(isinstance(key, str) and key.isupper() for key in dict.keys())\n    return lower_case or upper_case\n"
+    },
+    {
+     "id": "HumanEval/96",
+     "ok": true,
+     "resposta": "    def is_prime(num):\n        if num <= 1:\n            return False\n        for i in range(2, int(num**0.5) + 1):\n            if num % i == 0:\n                return False\n        return True\n\n    primes = []\n    for num in range(2, n):\n        if is_prime(num):\n            primes.append(num)\n    return primes\n"
+    },
+    {
+     "id": "HumanEval/97",
+     "ok": true,
+     "resposta": "    # Get the unit digits of both numbers\n    unit_digit_a = abs(a) % 10\n    unit_digit_b = abs(b) % 10\n    \n    # Multiply the unit digits and return the result\n    return unit_digit_a * unit_digit_b\n"
+    },
+    {
+     "id": "HumanEval/98",
+     "ok": true,
+     "resposta": "    count = 0\n    for i in range(0, len(s), 2):\n        if s[i] in 'AEIOU':\n            count += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/99",
+     "ok": true,
+     "resposta": "    # Convert the string to a float\n    num = float(value)\n    # Check if the number is positive or negative\n    if num > 0:\n        # If positive, round away from zero\n        return int(num + 0.5)\n    else:\n        # If negative, round away from zero\n        return int(num - 0.5)\n"
+    },
+    {
+     "id": "HumanEval/100",
+     "ok": false,
+     "resposta": "    stones = []\n    for i in range(n):\n        stones.append(2 * i + 1 if n % 2 else 2 * i + 2)\n    return stones\n"
+    },
+    {
+     "id": "HumanEval/101",
+     "ok": false,
+     "resposta": "    return s.split(\", \") if \",\" in s else s.split(\" \")\n"
+    },
+    {
+     "id": "HumanEval/102",
+     "ok": false,
+     "resposta": "    if x % 2 != 0:\n        x += 1\n    if y % 2 != 0:\n        y -= 1\n    if x > y:\n        return -1\n    for i in range(x, y + 1):\n        if i % 2 == 0:\n            return i\n    return -1\n"
+    },
+    {
+     "id": "HumanEval/103",
+     "ok": false,
+     "resposta": "    if n > m:\n        return -1\n    avg = round((n + m) / 2)\n    return bin(avg)[2:]\n"
+    },
+    {
+     "id": "HumanEval/104",
+     "ok": true,
+     "resposta": "    return sorted([i for i in x if all(int(digit) % 2 for digit in str(i))])\n"
+    },
+    {
+     "id": "HumanEval/105",
+     "ok": false,
+     "resposta": "    # Filter the array to include only numbers between 1 and 9\n    filtered_arr = [num for num in arr if 1 <= num <= 9]\n    # Sort the filtered array\n    sorted_arr = sorted(filtered_arr)\n    # Reverse the sorted array\n    reversed_arr = sorted_arr[::-1]\n    # Replace each digit with its corresponding name\n    result = [name for num in reversed_arr for name in num_to_name if num == int(name)]\n    return result\n"
+    },
+    {
+     "id": "HumanEval/106",
+     "ok": false,
+     "resposta": "    result = []\n    for i in range(1, n + 1):\n        if i % 2 == 0:\n            result.append(math.factorial(i))\n        else:\n            result.append(sum(range(1, i + 1)))\n    return result\n"
+    },
+    {
+     "id": "HumanEval/107",
+     "ok": true,
+     "resposta": "    # Initialize the count of even and odd palindromes\n    even_count = 0\n    odd_count = 0\n\n    # Iterate through all numbers from 1 to n\n    for i in range(1, n + 1):\n        # Check if the number is a palindrome\n        if str(i) == str(i)[::-1]:\n            # If it is a palindrome, increment the count of even or odd\n            if i % 2 == 0:\n                even_count += 1\n            else:\n                odd_count += 1\n\n    # Return the counts of even and odd palindromes\n    return (even_count, odd_count)\n"
+    },
+    {
+     "id": "HumanEval/108",
+     "ok": false,
+     "resposta": "    return sum(1 for num in arr if sum(int(digit) for digit in str(abs(num))) > 0)\n"
+    },
+    {
+     "id": "HumanEval/109",
+     "ok": false,
+     "resposta": "    if len(arr) == 0:\n        return True\n    if len(arr) == 1:\n        return True\n    if arr[0] <= arr[-1]:\n        return True\n    for i in range(len(arr)):\n        if arr[i] > arr[i+1]:\n            return False\n    return True\n"
+    },
+    {
+     "id": "HumanEval/110",
+     "ok": false,
+     "resposta": "    # Count the number of odd numbers in lst1\n    odd_count = sum(1 for num in lst1 if num % 2 != 0)\n    \n    # If there are no odd numbers in lst1, it is already even\n    if odd_count == 0:\n        return \"YES\"\n    \n    # If there are more odd numbers in lst1 than even numbers in lst2, it is impossible\n    if odd_count > len(lst2) // 2:\n        return \"NO\"\n    \n    # Otherwise, it is possible to exchange elements to make lst1 even\n    return \"YES\"\n"
+    },
+    {
+     "id": "HumanEval/111",
+     "ok": true,
+     "resposta": "    if not test:\n        return {}\n    \n    # Split the string into a list of letters\n    letters = test.split()\n    \n    # Count the occurrences of each letter\n    letter_counts = {}\n    for letter in letters:\n        if letter in letter_counts:\n            letter_counts[letter] += 1\n        else:\n            letter_counts[letter] = 1\n    \n    # Find the maximum occurrence count\n    max_count = max(letter_counts.values(), default=0)\n    \n    # Filter the letters that have the maximum occurrence count\n    most_common_letters = {letter: count for letter, count in letter_counts.items() if count == max_count}\n    \n    return most_common_letters\n"
+    },
+    {
+     "id": "HumanEval/112",
+     "ok": true,
+     "resposta": "    # Your code here\n    result = ''.join([char for char in s if char not in c])\n    return (result, result == result[::-1])\n"
+    },
+    {
+     "id": "HumanEval/113",
+     "ok": false,
+     "resposta": "    return [\"the number of odd elements \" + str(len([x for x in s if int(x) % 2])) + \"n the str\" + str(s.index(x) + 1) + \" of the 1nput.\" for s in lst]\n"
+    },
+    {
+     "id": "HumanEval/114",
+     "ok": true,
+     "resposta": "    if not nums:\n        return 0\n    min_sum = float('inf')\n    current_sum = 0\n    for num in nums:\n        current_sum += num\n        min_sum = min(min_sum, current_sum)\n        if current_sum > 0:\n            current_sum = 0\n    return min_sum\n"
+    },
+    {
+     "id": "HumanEval/115",
+     "ok": true,
+     "resposta": "    # Your code here\n    return sum(math.ceil(sum(row) / capacity) for row in grid)\n"
+    },
+    {
+     "id": "HumanEval/116",
+     "ok": true,
+     "resposta": "    return sorted(arr, key=lambda x: (bin(x).count('1'), x))\n"
+    },
+    {
+     "id": "HumanEval/117",
+     "ok": true,
+     "resposta": "    # Your code here\n    words = s.split()\n    result = []\n    for word in words:\n        if len([char for char in word if char.isalpha() and char not in \"aeiouAEIOU\"]) == n:\n            result.append(word)\n    return result\n"
+    },
+    {
+     "id": "HumanEval/118",
+     "ok": true,
+     "resposta": "    vowels = \"aeiouAEIOU\"\n    for i in range(len(word) - 2, 0, -1):\n        if word[i] in vowels and word[i - 1] not in vowels and word[i + 1] not in vowels:\n            return word[i]\n    return \"\"\n"
+    },
+    {
+     "id": "HumanEval/119",
+     "ok": false,
+     "resposta": "    # Your code here\n    pass\n"
+    },
+    {
+     "id": "HumanEval/120",
+     "ok": false,
+     "resposta": "    return sorted(arr, reverse=True)[:k]\n"
+    },
+    {
+     "id": "HumanEval/121",
+     "ok": false,
+     "resposta": "    return sum([lst[i] for i in range(1, len(lst), 2) if lst[i] % 2 != 0])\n"
+    },
+    {
+     "id": "HumanEval/122",
+     "ok": false,
+     "resposta": "    return sum([x for x in arr[:k] if 0 <= x <= 99])\n"
+    },
+    {
+     "id": "HumanEval/123",
+     "ok": true,
+     "resposta": "    odd_numbers = []\n    while n != 1:\n        if n % 2 != 0:\n            odd_numbers.append(n)\n        n = n // 2 if n % 2 == 0 else 3 * n + 1\n    odd_numbers.append(1)  # Adding 1 as it is always the last odd number in the sequence\n    return sorted(odd_numbers)\n"
+    },
+    {
+     "id": "HumanEval/124",
+     "ok": true,
+     "resposta": "    if not date:\n        return False\n    try:\n        month, day, year = map(int, date.split('-'))\n    except ValueError:\n        return False\n    if month < 1 or month > 12:\n        return False\n    if day < 1 or day > 31:\n        return False\n    if month in [4, 6, 9, 11] and day > 30:\n        return False\n    if month == 2 and day > 29:\n        return False\n    return True\n"
+    },
+    {
+     "id": "HumanEval/125",
+     "ok": false,
+     "resposta": "    if ' ' in txt:\n        return txt.split()\n    elif ',' in txt:\n        return txt.split(',')\n    else:\n        return sum(1 for char in txt if char.islower() and (ord(char) - ord('a')) % 2 == 0)\n"
+    },
+    {
+     "id": "HumanEval/126",
+     "ok": false,
+     "resposta": "    return all(lst[i] <= lst[i+1] for i in range(len(lst)-1)) and len(set(lst)) == len(lst)\n"
+    },
+    {
+     "id": "HumanEval/127",
+     "ok": false,
+     "resposta": "    start = max(interval1[0], interval2[0])\n    end = min(interval1[1], interval2[1])\n    if start > end:\n        return \"NO\"\n    length = end - start + 1\n    if length <= 1:\n        return \"NO\"\n    if length == 2:\n        return \"YES\"\n    if length == 3:\n        return \"YES\"\n    if length == 4:\n        return \"YES\"\n    if length == 5:\n        return \"YES\"\n    if length == 6:\n        return \"YES\"\n    if length == 7:\n        return \"YES\"\n    if length == 8:\n        return \"YES\"\n    if length == 9:\n        return \"YES\"\n    if length == 10:\n        return \"YES\"\n    if length == 11:\n        return \"YES\"\n    if length == 12:\n        return \"YES\"\n    if length == 13:\n        return \"YES\"\n    if length == 14:\n        return \"YES\"\n    if length == 15:\n        return \"YES\"\n    if length == 16:\n        return \"YES\"\n    if length == 17:\n        return \"YES\"\n    if length == 18:\n        return \"YES\"\n    if length == 19:\n        return \"YES\"\n    if length == 20:\n        return \"YES\"\n    if length == 21:\n        return \"YES\"\n    if length == 22:\n        return \"YES\"\n    if length == 23:\n        return \"YES\"\n    if length == 24:\n        return \"YES\"\n    if length == 25:\n        return \"YES\"\n    if length == 26:\n        return \"YES\"\n    if length == 2"
+    },
+    {
+     "id": "HumanEval/128",
+     "ok": false,
+     "resposta": "    if not arr:\n        return None\n    sign_product = 1\n    for num in arr:\n        if num == 0:\n            return 0\n        sign_product *= (-1) ** num\n    return sum(abs(num) for num in arr) * sign_product\n"
+    },
+    {
+     "id": "HumanEval/129",
+     "ok": false,
+     "resposta": "    # Your code here\n    pass\n"
+    },
+    {
+     "id": "HumanEval/130",
+     "ok": false,
+     "resposta": "    if n == 0:\n        return [0]\n    elif n == 1:\n        return [0, 1]\n    elif n == 2:\n        return [0, 1, 3]\n    else:\n        tri_seq = [0, 1, 3]\n        for i in range(3, n + 1):\n            if i % 2 == 0:\n                tri_seq.append(tri_seq[i - 1] + tri_seq[i - 2])\n            else:\n                tri_seq.append(tri_seq[i - 1] + tri_seq[i - 2] + tri_seq[i + 1])\n        return tri_seq\n"
+    },
+    {
+     "id": "HumanEval/131",
+     "ok": false,
+     "resposta": "    product = 1\n    for digit in str(n):\n        if int(digit) % 2 != 0:\n            product *= int(digit)\n    return product\n"
+    },
+    {
+     "id": "HumanEval/132",
+     "ok": false,
+     "resposta": "    # Initialize a counter for nested brackets\n    nested_count = 0\n    \n    # Iterate through each character in the string\n    for char in string:\n        # If the character is an opening bracket, increment the counter\n        if char == '[':\n            nested_count += 1\n        # If the character is a closing bracket, decrement the counter\n        elif char == ']':\n            nested_count -= 1\n        # If the counter is negative, it means there are more closing brackets than opening brackets\n        if nested_count < 0:\n            return False\n        # If the counter is 0 and there are more opening brackets than closing brackets, it means there is a nested bracket\n        if nested_count == 0 and nested_count > 0:\n            return True\n    \n    # If the counter is 0, it means there are no nested brackets\n    return False\n"
+    },
+    {
+     "id": "HumanEval/133",
+     "ok": false,
+     "resposta": "    return sum([int(math.ceil(x))**2 for x in lst])\n"
+    },
+    {
+     "id": "HumanEval/134",
+     "ok": false,
+     "resposta": "    # Check if the string is empty\n    if not txt:\n        return False\n    \n    # Check if the last character is a letter and not part of a word\n    if txt[-1].isalpha() and not txt[-1].isspace():\n        # Check if the last character is not part of a word\n        if not txt[-2].isspace():\n            return True\n    return False\n"
+    },
+    {
+     "id": "HumanEval/135",
+     "ok": false,
+     "resposta": "    for i in range(1, len(arr)):\n        if arr[i] < arr[i-1]:\n            return i-1\n    return -1\n"
+    },
+    {
+     "id": "HumanEval/136",
+     "ok": true,
+     "resposta": "    negative_integers = [x for x in lst if x < 0]\n    positive_integers = [x for x in lst if x > 0]\n\n    if not negative_integers:\n        a = None\n    else:\n        a = max(negative_integers)\n\n    if not positive_integers:\n        b = None\n    else:\n        b = min(positive_integers)\n\n    return (a, b)\n"
+    },
+    {
+     "id": "HumanEval/137",
+     "ok": false,
+     "resposta": "    # Convert strings to floats if necessary\n    if isinstance(a, str):\n        a = float(a.replace(',', '.'))\n    if isinstance(b, str):\n        b = float(b.replace(',', '.'))\n\n    # Compare and return the larger value\n    if a > b:\n        return a\n    elif b > a:\n        return b\n    else:\n        return None\n"
+    },
+    {
+     "id": "HumanEval/138",
+     "ok": true,
+     "resposta": "    # Since the smallest sum of 4 positive even numbers is 2+2+2+2=8, any number less than 8 cannot be written as such\n    if n < 8:\n        return False\n    # If n is even and greater than or equal to 8, it can always be written as the sum of 4 even numbers\n    return n % 2 == 0\n"
+    },
+    {
+     "id": "HumanEval/139",
+     "ok": false,
+     "resposta": "    if n <= 0:\n        raise ValueError(\"Input must be a positive integer\")\n    \n    result = 1\n    for i in range(1, n + 1):\n        result *= factorial(i)\n    return result\n"
+    },
+    {
+     "id": "HumanEval/140",
+     "ok": false,
+     "resposta": "    result = []\n    space_count = 0\n    for char in text:\n        if char == ' ':\n            space_count += 1\n            if space_count > 2:\n                result.append('-')\n            else:\n                result.append('_')\n        else:\n            if space_count > 2:\n                result.append('-')\n            else:\n                result.append('_')\n            result.append(char)\n            space_count = 0\n    if space_count > 2:\n        result.append('-')\n    else:\n        result.append('_')\n    return ''.join(result)\n"
+    },
+    {
+     "id": "HumanEval/141",
+     "ok": true,
+     "resposta": "    # Split the file name into two parts: before and after the dot\n    parts = file_name.split('.')\n    if len(parts) != 2:\n        return 'No'\n    before, after = parts\n    # Check if the before part is empty or starts with a non-letter\n    if not before or not before[0].isalpha():\n        return 'No'\n    # Check if the after part is not one of the allowed extensions\n    if after not in ['txt', 'exe', 'dll']:\n        return 'No'\n    # Check if there are more than three digits in the before part\n    if sum(c.isdigit() for c in before) > 3:\n        return 'No'\n    return 'Yes'\n"
+    },
+    {
+     "id": "HumanEval/142",
+     "ok": true,
+     "resposta": "    sum = 0\n    for i in range(len(lst)):\n        if i % 3 == 0:\n            sum += lst[i] ** 2\n        elif i % 4 == 0:\n            sum += lst[i] ** 3\n        else:\n            sum += lst[i]\n    return sum\n"
+    },
+    {
+     "id": "HumanEval/143",
+     "ok": true,
+     "resposta": "    # Helper function to check if a number is prime\n    def is_prime(n):\n        if n <= 1:\n            return False\n        if n <= 3:\n            return True\n        if n % 2 == 0 or n % 3 == 0:\n            return False\n        i = 5\n        while i * i <= n:\n            if n % i == 0 or n % (i + 2) == 0:\n                return False\n            i += 6\n        return True\n\n    # Split the sentence into words\n    words = sentence.split()\n    \n    # Filter words whose lengths are prime numbers\n    prime_length_words = [word for word in words if is_prime(len(word))]\n    \n    # Join the filtered words into a string\n    result = ' '.join(prime_length_words)\n    \n    return result\n"
+    },
+    {
+     "id": "HumanEval/144",
+     "ok": false,
+     "resposta": "    # Convert the fractions to floats\n    frac1 = float(x)\n    frac2 = float(n)\n    \n    # Check if the product is a whole number\n    return frac1 * frac2 == int(frac1 * frac2)\n"
+    },
+    {
+     "id": "HumanEval/145",
+     "ok": false,
+     "resposta": "    return sorted(nums, key=lambda x: (sum(int(d) for d in str(abs(x))), nums.index(x))\n"
+    },
+    {
+     "id": "HumanEval/146",
+     "ok": true,
+     "resposta": "    count = 0\n    for num in nums:\n        if num > 10:\n            first_digit = int(str(num)[0])\n            last_digit = int(str(num)[-1])\n            if first_digit % 2 != 0 and last_digit % 2 != 0:\n                count += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/147",
+     "ok": true,
+     "resposta": "    # Your code here\n    a = [i * i - i + 1 for i in range(1, n + 1)]\n    count = 0\n    for i in range(n):\n        for j in range(i + 1, n):\n            for k in range(j + 1, n):\n                if (a[i] + a[j] + a[k]) % 3 == 0:\n                    count += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/148",
+     "ok": false,
+     "resposta": "    planets = [\"Mercury\", \"Venus\", \"Earth\", \"Mars\", \"Jupiter\", \"Saturn\", \"Uranus\", \"Neptune\"]\n    if planet1 not in planets or planet2 not in planets:\n        return ()\n    index1 = planets.index(planet1)\n    index2 = planets.index(planet2)\n    if index1 > index2:\n        index1, index2 = index2, index1\n    return planets[index1+1:index2]\n"
+    },
+    {
+     "id": "HumanEval/149",
+     "ok": true,
+     "resposta": "    # Filter out strings with odd lengths\n    even_length_strings = [s for s in lst if len(s) % 2 == 0]\n    # Sort the list by length and then alphabetically\n    sorted_list = sorted(even_length_strings, key=lambda x: (len(x), x))\n    return sorted_list\n"
+    },
+    {
+     "id": "HumanEval/150",
+     "ok": false,
+     "resposta": "    if is_prime(n):\n        return x\n    else:\n        return y\n"
+    },
+    {
+     "id": "HumanEval/151",
+     "ok": false,
+     "resposta": "    return sum(x**2 for x in lst if x > 0 and x % 2 != 0)\n"
+    },
+    {
+     "id": "HumanEval/152",
+     "ok": true,
+     "resposta": "    return [abs(x-y) for x,y in zip(game,guess)]\n"
+    },
+    {
+     "id": "HumanEval/153",
+     "ok": true,
+     "resposta": "    max_strength = float('-inf')\n    strongest_extension = None\n    for extension in extensions:\n        cap = sum(1 for char in extension if char.isupper())\n        sm = sum(1 for char in extension if char.islower())\n        strength = cap - sm\n        if strength > max_strength:\n            max_strength = strength\n            strongest_extension = extension\n    return f\"{class_name}.{strongest_extension}\"\n"
+    },
+    {
+     "id": "HumanEval/154",
+     "ok": false,
+     "resposta": "    if len(a) != len(b):\n        return False\n    for i in range(len(b)):\n        if a[i:] + a[:i] in a:\n            return True\n    return False\n"
+    },
+    {
+     "id": "HumanEval/155",
+     "ok": true,
+     "resposta": "    even_count = 0\n    odd_count = 0\n    for digit in str(abs(num)):\n        if int(digit) % 2 == 0:\n            even_count += 1\n        else:\n            odd_count += 1\n    return (even_count, odd_count)\n"
+    },
+    {
+     "id": "HumanEval/156",
+     "ok": true,
+     "resposta": "    # Mapping of integers to their corresponding roman numerals\n    roman_numerals = [\n        (1000, 'm'), (900, 'cm'), (500, 'd'), (400, 'cd'),\n        (100, 'c'), (90, 'xc'), (50, 'l'), (40, 'xl'),\n        (10, 'x'), (9, 'ix'), (5, 'v'), (4, 'iv'), (1, 'i')\n    ]\n    result = ''\n    # Convert the number to a string and iterate over each character\n    for value, numeral in roman_numerals:\n        while number >= value:\n            result += numeral\n            number -= value\n    return result\n"
+    },
+    {
+     "id": "HumanEval/157",
+     "ok": false,
+     "resposta": "    # Check if the sum of the squares of two sides equals the square of the third side\n    return a**2 + b**2 == c**2\n"
+    },
+    {
+     "id": "HumanEval/158",
+     "ok": true,
+     "resposta": "    max_unique = 0\n    max_word = \"\"\n    for word in words:\n        unique_chars = len(set(word))\n        if unique_chars > max_unique or (unique_chars == max_unique and word < max_word):\n            max_unique = unique_chars\n            max_word = word\n    return max_word\n"
+    },
+    {
+     "id": "HumanEval/159",
+     "ok": true,
+     "resposta": "    total_eaten = number + min(need, remaining)\n    remaining_after_eating = max(remaining - need, 0)\n    return [total_eaten, remaining_after_eating]\n"
+    },
+    {
+     "id": "HumanEval/160",
+     "ok": false,
+     "resposta": "    result = operand[0]\n    for i in range(len(operator)):\n        if operator[i] == '+':\n            result += operand[i+1]\n        elif operator[i] == '-':\n            result -= operand[i+1]\n        elif operator[i] == '*':\n            result *= operand[i+1]\n        elif operator[i] == '//':\n            result //= operand[i+1]\n        elif operator[i] == '**':\n            result **= operand[i+1]\n    return result\n"
+    },
+    {
+     "id": "HumanEval/161",
+     "ok": true,
+     "resposta": "    if not any(c.isalpha() for c in s):\n        return s[::-1]\n    return ''.join(c.swapcase() if c.isalpha() else c for c in s)\n"
+    },
+    {
+     "id": "HumanEval/162",
+     "ok": false,
+     "resposta": "    if not text:\n        return None\n    return hashlib.md5(text.encode()).hexdigest()\n"
+    },
+    {
+     "id": "HumanEval/163",
+     "ok": false,
+     "resposta": "    # Ensure a is less than b for the loop\n    if a > b:\n        a, b = b, a\n\n    # Initialize an empty list to store even digits\n    even_digits = []\n\n    # Loop through the range from a to b\n    for num in range(a, b + 1):\n        # Convert the number to a string to iterate over its digits\n        num_str = str(num)\n        # Iterate over the digits and add even ones to the list\n        for digit in num_str:\n            if int(digit) % 2 == 0:\n                even_digits.append(int(digit))\n\n    # Return the list of even digits in ascending order\n    return sorted(even_digits)\n"
+    }
+   ],
+   "Qwen/Qwen2.5-Coder-1.5B-Instruct": [
+    {
+     "id": "HumanEval/0",
+     "ok": true,
+     "resposta": "    for i in range(len(numbers)):\n        for j in range(i + 1, len(numbers)):\n            if abs(numbers[i] - numbers[j]) < threshold:\n                return True\n    return False\n\n"
+    },
+    {
+     "id": "HumanEval/1",
+     "ok": true,
+     "resposta": "    result = []\n    current_group = ''\n    depth = 0\n\n    for char in paren_string.replace(' ', ''):\n\n        if char == '(':\n            depth += 1\n            current_group += char\n        elif char == ')':\n            depth -= 1\n            current_group += char\n\n            if depth == 0:\n                result.append(current_group)\n                current_group = ''\n\n    return result\n\n"
+    },
+    {
+     "id": "HumanEval/2",
+     "ok": true,
+     "resposta": "    return number - int(number)\n"
+    },
+    {
+     "id": "HumanEval/3",
+     "ok": true,
+     "resposta": "    balance = 0\n    for op in operations:\n        balance += op\n        if balance < 0:\n            return True\n    return False\n\n"
+    },
+    {
+     "id": "HumanEval/4",
+     "ok": false,
+     "resposta": "    return sum(abs(x - mean(numbers)) for x in numbers) / len(numbers)\n\n"
+    },
+    {
+     "id": "HumanEval/5",
+     "ok": false,
+     "resposta": "    return [numbers[i] for i in range(len(numbers)) if i % 2 == 0] + [delimeter] + [numbers[i] for i in range(len(numbers)) if i % 2 != 0]\n\n"
+    },
+    {
+     "id": "HumanEval/6",
+     "ok": false,
+     "resposta": "    result = []\n    max_depth = 0\n    current_depth = 0\n\n    for char in paren_string:\n        if char == '(':\n            current_depth += 1\n            if current_depth > max_depth:\n                max_depth = current_depth\n        elif char == ')':\n            current_depth -= 1\n\n        # If we encounter an empty group, add the max depth to the result list and reset the variables\n        if not char and current_depth == 0:\n            result.append(max_depth)\n            max_depth = 0\n            current_depth = 0\n\n    return result\n\n"
+    },
+    {
+     "id": "HumanEval/7",
+     "ok": true,
+     "resposta": "    return [s for s in strings if substring in s]\n\n"
+    },
+    {
+     "id": "HumanEval/8",
+     "ok": true,
+     "resposta": "    if not numbers:\n        return 0, 1\n    total_sum = sum(numbers)\n    total_product = 1\n    for num in numbers:\n        total_product *= num\n    return total_sum, total_product\n\n"
+    },
+    {
+     "id": "HumanEval/9",
+     "ok": true,
+     "resposta": "    if not numbers:\n        return []\n    \n    max_so_far = numbers[0]\n    result = [max_so_far]\n\n    for num in numbers[1:]:\n        if num > max_so_far:\n            max_so_far = num\n        result.append(max_so_far)\n\n    return result\n\n"
+    },
+    {
+     "id": "HumanEval/10",
+     "ok": false,
+     "resposta": "    if not string:\n        return ''\n\n    # Find the longest palindromic suffix\n    for i in range(len(string), 0, -1):\n        if is_palindrome(string[:i]):\n            break\n\n    # Reverse the prefix that comes before the palindromic suffix and append it to the end of the string\n    return string + string[:i][::-1]"
+    },
+    {
+     "id": "HumanEval/11",
+     "ok": false,
+     "resposta": "    # Your code here\n    pass\n\n"
+    },
+    {
+     "id": "HumanEval/12",
+     "ok": true,
+     "resposta": "    if not strings:\n        return None\n\n    max_length = 0\n    longest_string = None\n\n    for string in strings:\n        if len(string) > max_length:\n            max_length = len(string)\n            longest_string = string\n\n    return longest_string\n\n"
+    },
+    {
+     "id": "HumanEval/13",
+     "ok": true,
+     "resposta": "    while b != 0:\n        a, b = b, a % b\n    return a\n\n"
+    },
+    {
+     "id": "HumanEval/14",
+     "ok": true,
+     "resposta": "    return [string[:i] for i in range(1, len(string)+1)]\n\n"
+    },
+    {
+     "id": "HumanEval/15",
+     "ok": true,
+     "resposta": "    return \" \".join(map(str, range(n + 1)))\n"
+    },
+    {
+     "id": "HumanEval/16",
+     "ok": true,
+     "resposta": "    # Convert the string to lowercase to ignore case differences\n    lower_string = string.lower()\n    \n    # Use a set to store unique characters\n    unique_chars = set(lower_string)\n    \n    # Return the number of unique characters\n    return len(unique_chars)\n"
+    },
+    {
+     "id": "HumanEval/17",
+     "ok": false,
+     "resposta": "    music_list = []\n    for i in range(len(music_string)):\n        if music_string[i] == 'o':\n            music_list.append(4)\n        elif music_string[i] == 'o|':\n            music_list.append(2)\n        elif music_string[i] == '.|':\n            music_list.append(1)\n    return music_list\n\n"
+    },
+    {
+     "id": "HumanEval/18",
+     "ok": true,
+     "resposta": "    count = 0\n    start = 0\n    while True:\n        start = string.find(substring, start)\n        if start == -1:\n            break\n        count += 1\n        start += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/19",
+     "ok": true,
+     "resposta": "    # convert input string into list of numbers\n    num_list = [num for num in numbers.split()]\n    \n    # create dictionary mapping numbers to their corresponding values\n    num_dict = {'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9}\n    \n    # sort the list based on the values in the dictionary\n    sorted_num_list = sorted(num_list, key=lambda x: num_dict[x])\n    \n    # join the sorted list back into a string and return it\n    return ' '.join(sorted_num_list)\n\n"
+    },
+    {
+     "id": "HumanEval/20",
+     "ok": true,
+     "resposta": "    # Sort the list of numbers\n    sorted_numbers = sorted(numbers)\n\n    # Initialize variables to store the closest pair and their difference\n    closest_pair = (sorted_numbers[0], sorted_numbers[1])\n    min_difference = abs(sorted_numbers[1] - sorted_numbers[0])\n\n    # Iterate through the sorted list to find the closest pair\n    for i in range(1, len(sorted_numbers) - 1):\n        current_difference = abs(sorted_numbers[i + 1] - sorted_numbers[i])\n        if current_difference < min_difference:\n            min_difference = current_difference\n            closest_pair = (sorted_numbers[i], sorted_numbers[i + 1])\n\n    return closest_pair\n\n"
+    },
+    {
+     "id": "HumanEval/21",
+     "ok": true,
+     "resposta": "    min_val = min(numbers)\n    max_val = max(numbers)\n\n    # Calculate the range between the minimum and maximum values\n    range_val = max_val - min_val\n\n    # Apply the transformation to each element in the list\n    transformed_numbers = [(x - min_val) / range_val for x in numbers]\n\n    return transformed_numbers\n\n"
+    },
+    {
+     "id": "HumanEval/22",
+     "ok": true,
+     "resposta": "    return [value for value in values if isinstance(value, int)]\n\n"
+    },
+    {
+     "id": "HumanEval/23",
+     "ok": true,
+     "resposta": "    return len(string)\n"
+    },
+    {
+     "id": "HumanEval/24",
+     "ok": true,
+     "resposta": "    for i in range(n // 2, 0, -1):\n        if n % i == 0:\n            return i\n    return 1\n"
+    },
+    {
+     "id": "HumanEval/25",
+     "ok": true,
+     "resposta": "    if n <= 1:\n        return []\n    factors = []\n    # Divide by 2 as many times as possible\n    while n % 2 == 0:\n        factors.append(2)\n        n //= 2\n    # Check for odd factors starting from 3\n    i = 3\n    while i * i <= n:\n        while n % i == 0:\n            factors.append(i)\n            n //= i\n        i += 2\n    # If n is a prime number greater than 2\n    if n > 2:\n        factors.append(n)\n    return factors\n\n"
+    },
+    {
+     "id": "HumanEval/26",
+     "ok": false,
+     "resposta": "    seen = set()\n    result = []\n    for num in numbers:\n        if num not in seen:\n            seen.add(num)\n            result.append(num)\n    return result\n\n"
+    },
+    {
+     "id": "HumanEval/27",
+     "ok": true,
+     "resposta": "    return ''.join(char.swapcase() for char in string)\n"
+    },
+    {
+     "id": "HumanEval/28",
+     "ok": true,
+     "resposta": "    return \"\".join(strings)\n\n"
+    },
+    {
+     "id": "HumanEval/29",
+     "ok": true,
+     "resposta": "    return [s for s in strings if s.startswith(prefix)]\n\n"
+    },
+    {
+     "id": "HumanEval/30",
+     "ok": true,
+     "resposta": "    return [x for x in l if x > 0]\n"
+    },
+    {
+     "id": "HumanEval/31",
+     "ok": true,
+     "resposta": "    if n <= 1:\n        return False\n    for i in range(2, int(n**0.5) + 1):\n        if n % i == 0:\n            return False\n    return True\n"
+    },
+    {
+     "id": "HumanEval/32",
+     "ok": false,
+     "resposta": "    assert len(xs) % 2 == 0\n    assert xs[-1] != 0\n\n    def poly_derivative(xs):\n        return [i * coeff for i, coeff in enumerate(xs)][1:]\n\n    def poly_root(xs):\n        return poly(xs, 0)\n\n    def bisect(xs):\n        left = 0\n        right = max(xs)\n        while right - left > 1e-9:\n            mid = (left + right) / 2\n            if poly_root(poly_derivative(xs), mid) < 0:\n                left = mid\n            else:\n                right = mid\n        return left\n\n    return bisect(xs)\n\n"
+    },
+    {
+     "id": "HumanEval/33",
+     "ok": false,
+     "resposta": "    # Your code here"
+    },
+    {
+     "id": "HumanEval/34",
+     "ok": true,
+     "resposta": "    return sorted(set(l))\n"
+    },
+    {
+     "id": "HumanEval/35",
+     "ok": true,
+     "resposta": "    return max(l)\n"
+    },
+    {
+     "id": "HumanEval/36",
+     "ok": true,
+     "resposta": "    count = 0\n    for i in range(1, n):\n        if i % 11 == 0 or i % 13 == 0:\n            count += str(i).count('7')\n    return count\n"
+    },
+    {
+     "id": "HumanEval/37",
+     "ok": false,
+     "resposta": "    return [l[i] if i % 2 == 0 else sorted(l[i:i+2])[0] for i in range(len(l))]\n"
+    },
+    {
+     "id": "HumanEval/38",
+     "ok": true,
+     "resposta": "    # split string to groups. Each of length 3.\n    groups = [s[(3 * i):min((3 * i + 3), len(s))] for i in range((len(s) + 2) // 3)]\n    # reverse elements in each group. Unless group has fewer elements than 3.\n    groups = [(group[-1] + group[:-1]) if len(group) == 3 else group for group in groups]\n    return \"\".join(groups)\n\n"
+    },
+    {
+     "id": "HumanEval/39",
+     "ok": false,
+     "resposta": "    def is_prime(num):\n        if num <= 1:\n            return False\n        for i in range(2, int(math.sqrt(num)) + 1):\n            if num % i == 0:\n                return False\n        return True\n\n    fib_sequence = [0, 1]\n    count = 2\n    while True:\n        next_fib = fib_sequence[-1] + fib_sequence[-2]\n        fib_sequence.append(next_fib)\n        if is_prime(next_fib):\n            count += 1\n            if count == n:\n                return next_fib\n"
+    },
+    {
+     "id": "HumanEval/40",
+     "ok": true,
+     "resposta": "    l.sort()\n    for i in range(len(l) - 2):\n        left = i + 1\n        right = len(l) - 1\n        while left < right:\n            total = l[i] + l[left] + l[right]\n            if total == 0:\n                return True\n            elif total < 0:\n                left += 1\n            else:\n                right -= 1\n    return False\n"
+    },
+    {
+     "id": "HumanEval/41",
+     "ok": true,
+     "resposta": "    # Since every car on one side will eventually collide with every car on the other side,\n    # the total number of collisions is simply the square of the number of cars.\n    return n ** 2\n"
+    },
+    {
+     "id": "HumanEval/42",
+     "ok": true,
+     "resposta": "    return [x + 1 for x in l]\n"
+    },
+    {
+     "id": "HumanEval/43",
+     "ok": true,
+     "resposta": "    seen = set()\n    for num in l:\n        if -num in seen:\n            return True\n        seen.add(num)\n    return False\n"
+    },
+    {
+     "id": "HumanEval/44",
+     "ok": true,
+     "resposta": "    if x == 0:\n        return \"0\"\n    \n    digits = []\n    while x > 0:\n        digits.append(int(x % base))\n        x //= base\n    \n    # Reverse the list of digits\n    digits.reverse()\n    \n    # Convert each digit back to a string and join them together\n    result = ''.join(str(digit) for digit in digits)\n    \n    return result\n"
+    },
+    {
+     "id": "HumanEval/45",
+     "ok": true,
+     "resposta": "    return (a * h) / 2\n"
+    },
+    {
+     "id": "HumanEval/46",
+     "ok": true,
+     "resposta": "    if n == 0 or n == 1:\n        return 0\n    elif n == 2:\n        return 2\n    else:\n        a, b, c, d = 0, 0, 2, 0\n        for _ in range(4, n + 1):\n            a, b, c, d = b, c, d, a + b + c + d\n        return d\n"
+    },
+    {
+     "id": "HumanEval/47",
+     "ok": false,
+     "resposta": "    if len(l) % 2 == 0:\n        return (l[len(l)//2-1] + l[len(l)//2]) / 2\n    else:\n        return l[len(l)//2]\n"
+    },
+    {
+     "id": "HumanEval/48",
+     "ok": true,
+     "resposta": "    return text == text[::-1]\n"
+    },
+    {
+     "id": "HumanEval/49",
+     "ok": false,
+     "resposta": "    return pow(n, p-1, p)\n"
+    },
+    {
+     "id": "HumanEval/50",
+     "ok": true,
+     "resposta": "    return \"\".join([chr(((ord(ch) - 5 - ord(\"a\")) % 26) + ord(\"a\")) for ch in s])\n"
+    },
+    {
+     "id": "HumanEval/51",
+     "ok": true,
+     "resposta": "    return ''.join([char for char in text if char.lower() not in 'aeiou'])\n"
+    },
+    {
+     "id": "HumanEval/52",
+     "ok": true,
+     "resposta": "    return all(x < t for x in l)\n"
+    },
+    {
+     "id": "HumanEval/53",
+     "ok": true,
+     "resposta": "    return x + y\n"
+    },
+    {
+     "id": "HumanEval/54",
+     "ok": false,
+     "resposta": "    return sorted(s0) == sorted(s1)\n"
+    },
+    {
+     "id": "HumanEval/55",
+     "ok": true,
+     "resposta": "    if n == 0:\n        return 0\n    elif n == 1:\n        return 1\n    else:\n        a, b = 0, 1\n        for _ in range(2, n + 1):\n            a, b = b, a + b\n        return b\n"
+    },
+    {
+     "id": "HumanEval/56",
+     "ok": true,
+     "resposta": "    stack = []\n    for char in brackets:\n        if char == '<':\n            stack.append(char)\n        elif char == '>':\n            if not stack or stack.pop() != '<':\n                return False\n    return len(stack) == 0\n\n"
+    },
+    {
+     "id": "HumanEval/57",
+     "ok": false,
+     "resposta": "    return all(x <= y for x, y in zip(l, l[1:]))\n"
+    },
+    {
+     "id": "HumanEval/58",
+     "ok": true,
+     "resposta": "    return sorted(set(l1) & set(l2))\n\n"
+    },
+    {
+     "id": "HumanEval/59",
+     "ok": false,
+     "resposta": "    # Divide n by 2 until it's odd\n    while n % 2 == 0:\n        n //= 2\n    \n    # Now n must be odd, start checking from 3\n    for i in range(3, int(math.sqrt(n)) + 1, 2):\n        # While i divides n, replace n with i and update largest_prime\n        while n % i == 0:\n            largest_prime = i\n            n //= i\n    \n    # If n is a prime number greater than 2\n    if n > 2:\n        largest_prime = n\n    \n    return largest_prime\n"
+    },
+    {
+     "id": "HumanEval/60",
+     "ok": true,
+     "resposta": "    return sum(range(1, n + 1))\n"
+    },
+    {
+     "id": "HumanEval/61",
+     "ok": true,
+     "resposta": "    stack = []\n    for char in brackets:\n        if char == '(':\n            stack.append(char)\n        elif char == ')':\n            if not stack or stack.pop() != '(':\n                return False\n    return len(stack) == 0\n\n"
+    },
+    {
+     "id": "HumanEval/62",
+     "ok": true,
+     "resposta": "    return [i * xs[i] for i in range(1, len(xs))]\n"
+    },
+    {
+     "id": "HumanEval/63",
+     "ok": true,
+     "resposta": "    if n < 2:\n        return 0\n    elif n == 2:\n        return 1\n    else:\n        a, b, c = 0, 0, 1\n        for _ in range(3, n + 1):\n            a, b, c = b, c, a + b + c\n        return c\n"
+    },
+    {
+     "id": "HumanEval/64",
+     "ok": true,
+     "resposta": "    count = sum(1 for char in s.lower() if char in \"aeiou\")\n    if s.endswith('y') or s.endswith('Y'):\n        count += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/65",
+     "ok": false,
+     "resposta": "    if shift > len(str(x)):\n        return str(x)[::-1]\n    else:\n        return str(x)[-shift:] + str(x[:-shift])\n"
+    },
+    {
+     "id": "HumanEval/66",
+     "ok": true,
+     "resposta": "    return sum(ord(c) for c in s if c.isupper())\n"
+    },
+    {
+     "id": "HumanEval/67",
+     "ok": false,
+     "resposta": "    # your code here\n    num_apples = int(s.split()[0].split(' ')[0])\n    num_oranges = int(s.split()[2].split(' ')[0])\n    num_fruits = int(n)\n    num_mangoes = num_fruits - (num_apples + num_oranges)\n    return num_mangoes\n"
+    },
+    {
+     "id": "HumanEval/68",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/69",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/70",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/71",
+     "ok": false,
+     "resposta": "    # Check if the sides form a valid triangle\n    if a + b <= c or a + c <= b or b + c <= a:\n        return -1\n    \n    # Calculate the semi-perimeter\n    s = (a + b + c) / 2\n    \n    # Calculate the area using Heron's formula\n    area = math.sqrt(s * (s - a) * (s - b) * (s - c))\n    \n    # Round the area to 2 decimal points\n    return round(area, 2)\n"
+    },
+    {
+     "id": "HumanEval/72",
+     "ok": true,
+     "resposta": "    return q == q[::-1] and sum(q) <= w\n"
+    },
+    {
+     "id": "HumanEval/73",
+     "ok": true,
+     "resposta": "    left, right = 0, len(arr) - 1\n    changes = 0\n    \n    while left < right:\n        if arr[left] != arr[right]:\n            changes += 1\n        left += 1\n        right -= 1\n    \n    return changes\n"
+    },
+    {
+     "id": "HumanEval/74",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/75",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/76",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/77",
+     "ok": false,
+     "resposta": "    return round(a ** (1/3)) ** 3 == a\n"
+    },
+    {
+     "id": "HumanEval/78",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/79",
+     "ok": true,
+     "resposta": "    if decimal == 0:\n        return \"db0db\"\n    \n    binary_str = \"\"\n    while decimal > 0:\n        remainder = decimal % 2\n        binary_str = str(remainder) + binary_str\n        decimal //= 2\n    \n    return f\"db{binary_str}db\"\n"
+    },
+    {
+     "id": "HumanEval/80",
+     "ok": true,
+     "resposta": "    # Check if the string length is less than 3\n    if len(s) < 3:\n        return False\n    \n    # Iterate through the string in steps of 3\n    for i in range(len(s) - 2):\n        # Extract the current, next, and third characters\n        current = s[i]\n        next_char = s[i + 1]\n        third_char = s[i + 2]\n        \n        # Check if all three characters are distinct\n        if current != next_char and next_char != third_char and third_char != current:\n            continue\n        \n        # If any three consecutive characters are not distinct, return False\n        return False\n    \n    # If all three consecutive characters are distinct for all possible starting points, return True\n    return True\n"
+    },
+    {
+     "id": "HumanEval/81",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/82",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/83",
+     "ok": false,
+     "resposta": "    # Calculate the total number of n-digit positive integers\n    total_numbers = 9 * (10 ** (n - 1))\n    \n    # Subtract the count of numbers that both start and end with 1\n    # This is done by subtracting the count of n-digit numbers that are exactly 10^(n-1)\n    numbers_start_and_end_with_1 = 10 ** (n - 2)\n    \n    # Return the difference between the total numbers and those that start and end with 1\n    return total_numbers - numbers_start_and_end_with_1\n"
+    },
+    {
+     "id": "HumanEval/84",
+     "ok": true,
+     "resposta": "    # Convert the number to binary and remove the '0b' prefix\n    binary_sum = bin(sum(int(digit) for digit in str(N)))[2:]\n    return binary_sum\n"
+    },
+    {
+     "id": "HumanEval/85",
+     "ok": true,
+     "resposta": "    return sum(lst[i] for i in range(1, len(lst), 2) if lst[i] % 2 == 0)\n"
+    },
+    {
+     "id": "HumanEval/86",
+     "ok": false,
+     "resposta": "    # Split the input string into words\n    words = s.split()\n    \n    # Sort each word alphabetically\n    sorted_words = [sorted(word) for word in words]\n    \n    # Join the sorted words back into a single string with spaces\n    result = ' '.join(sorted_words)\n    \n    return result\n"
+    },
+    {
+     "id": "HumanEval/87",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/88",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/89",
+     "ok": true,
+     "resposta": "    # Create a dictionary of the alphabet shifted down by two\n    shifted_alphabet = {chr(i): chr((i - 97 + 2 * 2) % 26 + 97) for i in range(97, 123)}\n    \n    # Encrypt the string using the dictionary\n    encrypted_string = ''.join(shifted_alphabet[char] for char in s)\n    \n    return encrypted_string\n"
+    },
+    {
+     "id": "HumanEval/90",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/91",
+     "ok": false,
+     "resposta": "    # Split the input string into sentences based on '.', '?' or '!'\n    sentences = S.split('. ') + S.split('? ') + S.split('!')\n    \n    # Count the number of sentences starting with \"I\"\n    boredom_count = sum(1 for sentence in sentences if sentence.startswith(\"I\"))\n    \n    return boredom_count\n"
+    },
+    {
+     "id": "HumanEval/92",
+     "ok": true,
+     "resposta": "    return isinstance(x, int) and isinstance(y, int) and isinstance(z, int) and (x + y == z or x + z == y or y + z == x)\n"
+    },
+    {
+     "id": "HumanEval/93",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/94",
+     "ok": false,
+     "resposta": "    # Your code here"
+    },
+    {
+     "id": "HumanEval/95",
+     "ok": false,
+     "resposta": "    if not dict:\n        return False\n    \n    all_lower = all(key.islower() for key in dict)\n    all_upper = all(key.isupper() for key in dict)\n    \n    return all_lower or all_upper\n"
+    },
+    {
+     "id": "HumanEval/96",
+     "ok": false,
+     "resposta": "    def is_prime(num):\n        if num <= 1:\n            return False\n        for i in range(2, int(math.sqrt(num)) + 1):\n            if num % i == 0:\n                return False\n        return True\n\n    primes = []\n    for num in range(2, n):\n        if is_prime(num):\n            primes.append(num)\n    return primes\n"
+    },
+    {
+     "id": "HumanEval/97",
+     "ok": true,
+     "resposta": "    # Extract the last digit of each number\n    last_digit_a = abs(a) % 10\n    last_digit_b = abs(b) % 10\n    \n    # Multiply the last digits\n    result = last_digit_a * last_digit_b\n    \n    return result\n"
+    },
+    {
+     "id": "HumanEval/98",
+     "ok": true,
+     "resposta": "    # Define the set of uppercase vowels\n    uppercase_vowels = {'A', 'E', 'I', 'O', 'U'}\n    # Initialize the count\n    count = 0\n    # Iterate over the string, considering only even indices\n    for i in range(0, len(s), 2):\n        if s[i] in uppercase_vowels:\n            count += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/99",
+     "ok": false,
+     "resposta": "    # Convert the string to a float\n    num = float(value)\n    \n    # Check if the number is positive or negative\n    if num > 0:\n        # Round up if there's a decimal part\n        return math.ceil(num)\n    else:\n        # Round down if there's a decimal part\n        return math.floor(num)\n"
+    },
+    {
+     "id": "HumanEval/100",
+     "ok": true,
+     "resposta": "    stones = []\n    current_stones = n\n    for _ in range(n):\n        stones.append(current_stones)\n        # Determine the next number based on whether the current number is odd or even\n        if current_stones % 2 == 0:\n            current_stones += 2\n        else:\n            current_stones += 2\n\n    return stones\n"
+    },
+    {
+     "id": "HumanEval/101",
+     "ok": false,
+     "resposta": "    # Split the string using either comma or space as delimiter\n    words = s.split(', ')\n    return words\n"
+    },
+    {
+     "id": "HumanEval/102",
+     "ok": false,
+     "resposta": "    # Check if both x and y are even\n    if x % 2 == 0 and y % 2 == 0:\n        # Find the maximum of x and y\n        max_num = max(x, y)\n        # Return the largest even number in the range [x, y]\n        return max_num if max_num % 2 == 0 else -1\n    else:\n        # If either x or y is odd, return -1\n        return -1\n"
+    },
+    {
+     "id": "HumanEval/103",
+     "ok": false,
+     "resposta": "    if n > m:\n        return -1\n    avg = round((n + m) / 2)\n    return bin(avg)[2:]\n"
+    },
+    {
+     "id": "HumanEval/104",
+     "ok": true,
+     "resposta": "    def has_even_digit(n):\n        while n > 0:\n            if n % 2 == 0:\n                return True\n            n //= 10\n        return False\n\n    return sorted(set(x) - {num for num in x if has_even_digit(num)})\n\n"
+    },
+    {
+     "id": "HumanEval/105",
+     "ok": false,
+     "resposta": "    # Filter out numbers outside the range 1 to 9\n    filtered_arr = [num for num in arr if 1 <= num <= 9]\n    \n    # Sort the filtered array\n    sorted_arr = sorted(filtered_arr)\n    \n    # Reverse the sorted array\n    reversed_arr = sorted_arr[::-1]\n    \n    # Replace each digit with its corresponding name\n    result = [name_dict[num] for num in reversed_arr]\n    \n    return result\n"
+    },
+    {
+     "id": "HumanEval/106",
+     "ok": false,
+     "resposta": "    result = []\n    for i in range(1, n + 1):\n        if i % 2 == 0:\n            result.append(math.factorial(i))\n        else:\n            result.append(sum(range(1, i + 1)))\n    return result\n"
+    },
+    {
+     "id": "HumanEval/107",
+     "ok": true,
+     "resposta": "    # Initialize counters for even and odd palindromes\n    even_count = 0\n    odd_count = 0\n    \n    # Iterate through numbers from 1 to n\n    for i in range(1, n + 1):\n        # Convert the number to string to check if it's a palindrome\n        num_str = str(i)\n        \n        # Check if the number is a palindrome\n        if num_str == num_str[::-1]:\n            # Increment the count based on whether the number is even or odd\n            if i % 2 == 0:\n                even_count += 1\n            else:\n                odd_count += 1\n                \n    # Return the counts as a tuple\n    return (even_count, odd_count)\n"
+    },
+    {
+     "id": "HumanEval/108",
+     "ok": false,
+     "resposta": "    return len([num for num in arr if sum(int(digit) for digit in str(num)) > 0])\n"
+    },
+    {
+     "id": "HumanEval/109",
+     "ok": false,
+     "resposta": "    # Write your code here\n    if len(arr) == 0:\n        return True\n    \n    # Find the minimum element and its index\n    min_val = min(arr)\n    min_index = arr.index(min_val)\n    \n    # Check if the array is already sorted or can be sorted with a single right shift\n    if arr == sorted(arr) or (min_index + 1) % len(arr) == 0:\n        return True\n    else:\n        return False\n"
+    },
+    {
+     "id": "HumanEval/110",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/111",
+     "ok": true,
+     "resposta": "    # Split the input string into individual characters\n    chars = test.split()\n    \n    # Create a dictionary to store the frequency of each character\n    char_freq = {}\n    for char in chars:\n        if char in char_freq:\n            char_freq[char] += 1\n        else:\n            char_freq[char] = 1\n    \n    # Find the maximum frequency\n    max_freq = max(char_freq.values(), default=0)\n    \n    # Filter the dictionary to include only characters with the maximum frequency\n    result = {char: freq for char, freq in char_freq.items() if freq == max_freq}\n    \n    return result\n"
+    },
+    {
+     "id": "HumanEval/112",
+     "ok": false,
+     "resposta": "    # Your code here\n    pass\n"
+    },
+    {
+     "id": "HumanEval/113",
+     "ok": false,
+     "resposta": "    return [f\"the number of odd elements {len([x for x in s if int(x) % 2 != 0])}n the str{n+1} of the {n+1}nput.\" for n, s in enumerate(lst)]\n"
+    },
+    {
+     "id": "HumanEval/114",
+     "ok": false,
+     "resposta": "    if not nums:\n        return 0\n\n    current_sum = max_sum = nums[0]\n\n    for num in nums[1:]:\n        current_sum = min(num, current_sum + num)\n        max_sum = max(max_sum, current_sum)\n\n    return max_sum\n\n"
+    },
+    {
+     "id": "HumanEval/115",
+     "ok": false,
+     "resposta": "    # Your code here"
+    },
+    {
+     "id": "HumanEval/116",
+     "ok": true,
+     "resposta": "    return sorted(arr, key=lambda x: (bin(x).count('1'), x))\n"
+    },
+    {
+     "id": "HumanEval/117",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/118",
+     "ok": false,
+     "resposta": "    vowels = 'aeiouAEIOU'\n    for i in range(len(word) - 2, 0, -1):\n        if word[i] not in vowels and word[i + 1] in vowels:\n            return word[i]\n    return ''\n"
+    },
+    {
+     "id": "HumanEval/119",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/120",
+     "ok": false,
+     "resposta": "    # Sort the array in descending order\n    arr.sort(reverse=True)\n\n    # Return the first k elements from the sorted array\n    return arr[:k]\n\n"
+    },
+    {
+     "id": "HumanEval/121",
+     "ok": false,
+     "resposta": "    # Your code here\n    pass\n"
+    },
+    {
+     "id": "HumanEval/122",
+     "ok": false,
+     "resposta": "    # Your code here"
+    },
+    {
+     "id": "HumanEval/123",
+     "ok": false,
+     "resposta": "    def collatz(num):\n        while num != 1:\n            yield num\n            if num % 2 == 0:\n                num //= 2\n            else:\n                num = 3 * num + 1\n\n    odd_numbers = [num for num in collatz(n) if num % 2 != 0]\n    return sorted(odd_numbers)\n"
+    },
+    {
+     "id": "HumanEval/124",
+     "ok": false,
+     "resposta": "    # Your code here\n    pass\n"
+    },
+    {
+     "id": "HumanEval/125",
+     "ok": false,
+     "resposta": "    # Check for whitespaces and split accordingly\n    if ' ' in txt:\n        return txt.split()\n    elif ',' in txt:\n        return txt.split(',')\n    else:\n        # Count odd-order lowercase letters\n        count = sum(1 for char in txt.lower() if (ord(char) - ord('a')) % 2 == 1)\n        return count\n"
+    },
+    {
+     "id": "HumanEval/126",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/127",
+     "ok": false,
+     "resposta": "    # your code here\n"
+    },
+    {
+     "id": "HumanEval/128",
+     "ok": false,
+     "resposta": "    if not arr:\n        return None\n\n    sign_product = 1\n    for num in arr:\n        if num == 0:\n            return 0\n        elif num < 0:\n            sign_product *= -1\n\n    return abs(sum(num * sign_product for num in arr))\n"
+    },
+    {
+     "id": "HumanEval/129",
+     "ok": false,
+     "resposta": "    # Your code here"
+    },
+    {
+     "id": "HumanEval/130",
+     "ok": false,
+     "resposta": "    # Your code here\n    pass\n"
+    },
+    {
+     "id": "HumanEval/131",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/132",
+     "ok": false,
+     "resposta": "    # Initialize counters for open and close brackets\n    open_brackets = 0\n    close_brackets = 0\n    \n    # Iterate through each character in the string\n    for char in string:\n        if char == '[':\n            open_brackets += 1\n        elif char == ']':\n            close_brackets += 1\n            \n            # Check if there are more close brackets than open ones\n            if close_brackets > open_brackets:\n                return False\n    \n    # Check if there is at least one nested subsequence\n    return open_brackets > close_brackets\n"
+    },
+    {
+     "id": "HumanEval/133",
+     "ok": false,
+     "resposta": "    # Your code here\n    rounded_lst = [math.ceil(x) for x in lst]\n    squared_lst = [x**2 for x in rounded_lst]\n    return sum(squared_lst)\n"
+    },
+    {
+     "id": "HumanEval/134",
+     "ok": false,
+     "resposta": "    # Split the text into words based on spaces\n    words = txt.split()\n    \n    # Check if the last word is empty or contains only spaces\n    if len(words[-1]) == 0 or all(char.isspace() for char in words[-1]):\n        return False\n    \n    # Get the last character of the last word\n    last_char = words[-1][-1]\n    \n    # Check if the last character is an alphabet and not part of a word\n    if last_char.isalpha() and not any(char.isalpha() for char in words[-1][:-1]):\n        return True\n    else:\n        return False\n"
+    },
+    {
+     "id": "HumanEval/135",
+     "ok": false,
+     "resposta": "    for i in range(1, len(arr)):\n        if arr[i] < arr[i-1]:\n            return i-1\n    return -1\n"
+    },
+    {
+     "id": "HumanEval/136",
+     "ok": true,
+     "resposta": "    negatives = [x for x in lst if x < 0]\n    positives = [x for x in lst if x > 0]\n\n    largest_negative = max(negatives) if negatives else None\n    smallest_positive = min(positives) if positives else None\n\n    return (largest_negative, smallest_positive)\n"
+    },
+    {
+     "id": "HumanEval/137",
+     "ok": false,
+     "resposta": "    # Convert strings to floats for comparison\n    a_float = float(a) if isinstance(a, str) else a\n    b_float = float(b) if isinstance(b, str) else b\n    \n    # Compare the floats and return the appropriate result\n    if a_float > b_float:\n        return a\n    elif b_float > a_float:\n        return b\n    else:\n        return None\n"
+    },
+    {
+     "id": "HumanEval/138",
+     "ok": true,
+     "resposta": "    # Since the smallest sum of four positive even numbers is 2+2+2+2=8, any number less than 8 cannot be expressed as such a sum.\n    if n < 8:\n        return False\n    # If n is even and greater than or equal to 8, it can always be expressed as the sum of four even numbers.\n    return n % 2 == 0\n"
+    },
+    {
+     "id": "HumanEval/139",
+     "ok": false,
+     "resposta": "    # Initialize the result to 1 (since 1! is 1)\n    result = 1\n    \n    # Loop from n down to 1, multiplying the result by each number\n    for i in range(1, n + 1):\n        result *= i\n    \n    return result\n"
+    },
+    {
+     "id": "HumanEval/140",
+     "ok": false,
+     "resposta": "    # Replace more than two consecutive spaces with -\n    text = re.sub(r' {3,}', '-', text)\n    # Replace single space with underscore\n    text = text.replace(' ', '_')\n    return text\n"
+    },
+    {
+     "id": "HumanEval/141",
+     "ok": true,
+     "resposta": "    # Split the file name into two parts based on the dot\n    parts = file_name.split('.')\n    \n    # Check if there is exactly one dot in the file name\n    if len(parts) != 2:\n        return 'No'\n    \n    # Extract the prefix and suffix from the parts\n    prefix, suffix = parts\n    \n    # Check if the prefix is empty or does not start with a letter\n    if not prefix or not prefix[0].isalpha():\n        return 'No'\n    \n    # Check if the suffix is one of the allowed types\n    if suffix not in ['txt', 'exe', 'dll']:\n        return 'No'\n    \n    # Count the number of digits in the prefix\n    digit_count = sum(c.isdigit() for c in prefix)\n    \n    # Check if the number of digits is less than or equal to three\n    if digit_count > 3:\n        return 'No'\n    \n    # If all checks pass, the file name is valid\n    return 'Yes'\n"
+    },
+    {
+     "id": "HumanEval/142",
+     "ok": false,
+     "resposta": "    # Initialize the sum to zero\n    total_sum = 0\n    \n    # Iterate over each element in the list\n    for i, num in enumerate(lst):\n        # Check if the index is a multiple of 3\n        if i % 3 == 0:\n            # Square the number\n            total_sum += num ** 2\n        # Check if the index is a multiple of 4 but not a multiple of 3\n        elif i % 4 == 0:\n            # Cube the number\n            total_sum += num ** 3\n    \n    # Return the final sum\n    return total_sum\n"
+    },
+    {
+     "id": "HumanEval/143",
+     "ok": true,
+     "resposta": "    # Helper function to check if a number is prime\n    def is_prime(n):\n        if n <= 1:\n            return False\n        if n == 2:\n            return True\n        if n % 2 == 0:\n            return False\n        max_divisor = int(n**0.5)\n        for i in range(3, max_divisor + 1, 2):\n            if n % i == 0:\n                return False\n        return True\n\n    # Split the sentence into words\n    words = sentence.split()\n    \n    # Filter words whose lengths are prime numbers\n    prime_length_words = [word for word in words if is_prime(len(word))]\n    \n    # Join the filtered words back into a single string\n    result = ' '.join(prime_length_words)\n    \n    return result\n"
+    },
+    {
+     "id": "HumanEval/144",
+     "ok": false,
+     "resposta": "    # Convert the string fractions to floats for easier manipulation\n    frac_x = float(x)\n    frac_n = float(n)\n    \n    # Calculate the product of the two fractions\n    product = frac_x * frac_n\n    \n    # Check if the product is an integer by comparing it with its floor value\n    return product.is_integer()\n"
+    },
+    {
+     "id": "HumanEval/145",
+     "ok": false,
+     "resposta": "    return sorted(nums, key=lambda x: (sum(int(digit) for digit in str(abs(x))), nums.index(x)))\n"
+    },
+    {
+     "id": "HumanEval/146",
+     "ok": false,
+     "resposta": "    count = 0\n    for num in nums:\n        if abs(num) > 10 and isOdd(abs(num)) and isOdd(int(str(num)[0])) and isOdd(int(str(num)[-1])):\n            count += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/147",
+     "ok": false,
+     "resposta": "    # Your code here\n    pass\n"
+    },
+    {
+     "id": "HumanEval/148",
+     "ok": false,
+     "resposta": "    # List of planets ordered by their distance from the Sun\n    planets = [\"Mercury\", \"Venus\", \"Earth\", \"Mars\", \"Jupiter\", \"Saturn\", \"Uranus\", \"Neptune\"]\n    \n    # Find the indices of planet1 and planet2\n    try:\n        index1 = planets.index(planet1)\n        index2 = planets.index(planet2)\n    except ValueError:\n        return ()\n    \n    # Ensure index1 is less than index2 for correct slicing\n    if index1 > index2:\n        index1, index2 = index2, index1\n    \n    # Return the list of planets between index1 and index2 (exclusive)\n    return planets[index1 + 1:index2]\n"
+    },
+    {
+     "id": "HumanEval/149",
+     "ok": true,
+     "resposta": "    # Filter out strings with odd lengths\n    even_length_strings = [s for s in lst if len(s) % 2 == 0]\n    \n    # Sort the filtered list by length and then alphabetically\n    sorted_even_length_strings = sorted(even_length_strings, key=lambda x: (len(x), x))\n    \n    return sorted_even_length_strings\n"
+    },
+    {
+     "id": "HumanEval/150",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/151",
+     "ok": false,
+     "resposta": "    # Filter out non-integer and negative numbers, then square them and sum them up\n    return sum(x**2 for x in lst if isinstance(x, int) and x > 0)\n"
+    },
+    {
+     "id": "HumanEval/152",
+     "ok": true,
+     "resposta": "    return [abs(x-y) for x,y in zip(guess,game)]\n\n"
+    },
+    {
+     "id": "HumanEval/153",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/154",
+     "ok": true,
+     "resposta": "    # your code here\n    for i in range(len(b)):\n        temp = b[i:] + b[:i]\n        if temp in a:\n            return True\n    return False\n\n"
+    },
+    {
+     "id": "HumanEval/155",
+     "ok": false,
+     "resposta": "    # Convert the number to its absolute value to handle negative numbers\n    num = abs(num)\n    \n    # Initialize counters for even and odd digits\n    even_count = 0\n    odd_count = 0\n    \n    # Iterate through each digit in the number\n    while num > 0:\n        digit = num % 10\n        \n        # Check if the digit is even or odd\n        if digit % 2 == 0:\n            even_count += 1\n        else:\n            odd_count += 1\n        \n        # Remove the last digit from the number\n        num //= 10\n    \n    # Return the counts as a tuple\n    return (even_count, odd_count)\n"
+    },
+    {
+     "id": "HumanEval/156",
+     "ok": true,
+     "resposta": "    # Mapping of integers to their corresponding Roman numerals\n    roman_numerals = [\n        (1000, 'm'), (900, 'cm'), (500, 'd'), (400, 'cd'),\n        (100, 'c'), (90, 'xc'), (50, 'l'), (40, 'xl'),\n        (10, 'x'), (9, 'ix'), (5, 'v'), (4, 'iv'), (1, 'i')\n    ]\n    \n    result = ''\n    for value, symbol in roman_numerals:\n        while number >= value:\n            result += symbol\n            number -= value\n    \n    return result.lower()\n"
+    },
+    {
+     "id": "HumanEval/157",
+     "ok": false,
+     "resposta": "    # Check if any two sides are equal (i.e., it's an isosceles triangle)\n    if a == b or b == c or c == a:\n        return True\n    \n    # Calculate the squares of the sides\n    a_squared = a ** 2\n    b_squared = b ** 2\n    c_squared = c ** 2\n    \n    # Check if the sum of the squares of the two shorter sides equals the square of the longest side\n    if a_squared + b_squared == c_squared:\n        return True\n    \n    return False\n"
+    },
+    {
+     "id": "HumanEval/158",
+     "ok": true,
+     "resposta": "    max_unique = 0\n    result = \"\"\n    \n    for word in words:\n        unique_chars = set(word)\n        if len(unique_chars) > max_unique or (len(unique_chars) == max_unique and word < result):\n            max_unique = len(unique_chars)\n            result = word\n            \n    return result\n"
+    },
+    {
+     "id": "HumanEval/159",
+     "ok": true,
+     "resposta": "    # Calculate the total number of carrots eaten after the meals\n    total_eaten = number + min(need, remaining)\n    # Calculate the number of carrots left after the meals\n    remaining_after_meals = max(remaining - need, 0)\n    return [total_eaten, remaining_after_meals]\n"
+    },
+    {
+     "id": "HumanEval/160",
+     "ok": false,
+     "resposta": "    # Your code here\n    pass\n"
+    },
+    {
+     "id": "HumanEval/161",
+     "ok": false,
+     "resposta": "    # Your code here\n"
+    },
+    {
+     "id": "HumanEval/162",
+     "ok": true,
+     "resposta": "    if not text:\n        return None\n    import hashlib\n    return hashlib.md5(text.encode()).hexdigest()\n"
+    },
+    {
+     "id": "HumanEval/163",
+     "ok": false,
+     "resposta": "    # Ensure a is less than or equal to b for simplicity\n    if a > b:\n        a, b = b, a\n    \n    # Generate all numbers from a to b\n    numbers = range(a, b + 1)\n    \n    # Filter out even numbers and sort them\n    even_numbers = sorted([num for num in numbers if num % 2 == 0])\n    \n    return even_numbers\n"
+    }
+   ],
+   "Qwen/Qwen2.5-Math-1.5B-Instruct": [
+    {
+     "id": "HumanEval/0",
+     "ok": true,
+     "resposta": "    for i in range(len(numbers)):\n        for j in range(i + 1, len(numbers)):\n            if abs(numbers[i] - numbers[j]) < threshold:\n                return True\n    return False\n"
+    },
+    {
+     "id": "HumanEval/1",
+     "ok": false,
+     "resposta": "    result = []\n    stack = []\n\n    for char in str input:\n        if char == '(':\n            stack.append(char)\n        elif char == ')':\n            if stack and stack[-1] == '(':\n                stack.pop()\n            else:\n                result.append('[' if stack else ']')\n\n    return result\n"
+    },
+    {
+     "id": "HumanEval/2",
+     "ok": false,
+     "resposta": "    return number - math.floor(number)\n"
+    },
+    {
+     "id": "HumanEval/3",
+     "ok": true,
+     "resposta": "    balance = 0\n    for operation in operations:\n        balance += operation\n        if balance < 0:\n            return True\n    return False\n"
+    },
+    {
+     "id": "HumanEval/4",
+     "ok": true,
+     "resposta": "    mean = sum(numbers) / len(numbers)\n    abs_diff = [abs(x - mean) for x in numbers]\n    return sum(abs_diff) / len(abs_diff)\n"
+    },
+    {
+     "id": "HumanEval/5",
+     "ok": false,
+     "resposta": "    result = []\n    for i in range(len(numbers)):\n        result.append(numbers[i])\n        if i != len(numbers) - 1:\n            result.append(defimeter)\n    return result\n"
+    },
+    {
+     "id": "HumanEval/6",
+     "ok": false,
+     "resposta": "    stack = []\n    result = []\n    for char in range(len(parallel_string)):\n        if parallel_string[char] == '(':\n            stack.append(char)\n        elif parallel_string[char] == ')':\n            if not stack or stack[-1] != char:\n                stack.pop()\n            else:\n                stack.pop()\n                result.append(len(stack) + 1)\n    return result\n"
+    },
+    {
+     "id": "HumanEval/7",
+     "ok": false,
+     "resposta": "    return [line for line in lines if substring in line]$\"\""
+    },
+    {
+     "id": "HumanEval/8",
+     "ok": true,
+     "resposta": "    if not numbers:\n        return (0, 1)\n    sum_numbers = 0\n    product_numbers = 1\n    for number in numbers:\n        sum_numbers += number\n        product_numbers *= number\n    return (sum_numbers, product_numbers)\n"
+    },
+    {
+     "id": "HumanEval/9",
+     "ok": false,
+     "resposta": "    rolling_max_list = [numbers[0]]\n    for i in range(1, len(numbers)):\n        rolling_max_list.append(max(rolling_max_list[-1], numbers[i]))\n    return rolling_max_list\n"
+    },
+    {
+     "id": "HumanEval/10",
+     "ok": false,
+     "resposta": "    # Find the longest prefix that is a palindrome\n    for i in range(len(string)):\n        if is_palindrome(string[:i+1]):\n            break\n\n    # Reverse the prefix and append to the end of the string\n    return string[:i] + string[:i][::-1]\n"
+    },
+    {
+     "id": "HumanEval/11",
+     "ok": false,
+     "resposta": "    return ''.join(str(int(a_i) ^ int(b_i))) for a_i, b_i in zip(a, b))\n"
+    },
+    {
+     "id": "HumanEval/12",
+     "ok": false,
+     "resposta": "    if not degrees:\n        return None\n\n    longest = degrees[0]\n    for degree in degrees[1:]:\n        if len(degree) > len(longest):\n            longest = degree\n\n    return longest\n"
+    },
+    {
+     "id": "HumanEval/13",
+     "ok": true,
+     "resposta": "    while b:\n        a, b = b, a % b\n    return a\n"
+    },
+    {
+     "id": "HumanEval/14",
+     "ok": false,
+     "resposta": "    return [s for s in string]  # This is a no-ops, just to match the expected output format. We could just return string directly. \n    # return [s for s in string]  # This is a no-ops, just to match the expected output format. We could just return string directly. \n    # return [s for s in string]  # This is a no-ops, just to match the expected output format. We could just return string directly. \n    return [s for s in string]  # This is a no-ops, just to match the expected output format. We could just return string directly. \n    # return [s for s in string]  # This is a no-ops, just to match the expected output format. We could just return string directly. \n    return [s for s in string]  # This is a no-ops, just to match the expected output format. We could just return string directly. \n    # return [s for s in string]  # This is a no-ops, just to match the expected output format. We could just return string directly. \n    return [s for s in string]  # This is a no-ops, just to match the expected output format. We could just return string directly. \n    # return [s for s in string]  # This is a no-ops, just to match the expected output format. We could just return string directly. \n    return [s for s in string]  # This is a no-ops, just to match the expected output format. We could just return string directly. \n    # return [s for s in string]  # This is a no-ops, just to match the expected output format. We could just return string directly. \n    return [s"
+    },
+    {
+     "id": "HumanEval/15",
+     "ok": true,
+     "resposta": "    return ' '.join(str(i) for i in range(n + 1))\n"
+    },
+    {
+     "id": "HumanEval/16",
+     "ok": false,
+     "resposta": "    # Convert the string to a set to remove any duplicate characters\n    distinct_characters = set(string)\n    # Return the number of distinct characters\n    return len(distinct_characters)\n"
+    },
+    {
+     "id": "HumanEval/17",
+     "ok": false,
+     "resposta": "    # split the string into individual notes\n    notes = music_string.split(' ')\n    # convert each note to its corresponding value\n    note_values = [4 if note == 'o' else 2 if note == 'o|$' else 1 for note in notes]\n    # sum the values to get the total beats\n    total_beats = sum(note_values)\n    return note_values, total_beats\n"
+    },
+    {
+     "id": "HumanEval/18",
+     "ok": false,
+     "resposta": "    return len(string) // len(substring)\n"
+    },
+    {
+     "id": "HumanEval/19",
+     "ok": false,
+     "resposta": "    # Convert the string into a list of integers\n    numbers_list = list(map(int, numbers.split()))\n    \n    # Sort the list of integers\n    sorted_numbers_list = sorted(numbers_list)\n    \n    # Convert the sorted list back into a string\n    sorted_numbers_str = ''.join(map(str, sorted_numbers_list))\n    \n    return sorted_numbers_str\n"
+    },
+    {
+     "id": "HumanEval/20",
+     "ok": true,
+     "resposta": "    if len(numbers) < 2:\n        raise ValueError(\"List must have at least two elements\")\n\n    # Sort the list to make it easier to find the closest elements\n    sorted_numbers = sorted(numbers)\n\n    # Initialize variables to store the closest elements\n    closest_smaller = None\n    closest_larger = None\n    min_difference = float('inf')\n\n    # Iterate through the sorted list to find the closest elements\n    for i in range(len(sorted_numbers) - 1):\n        difference = sorted_numbers[i + 1] - sorted_numbers[i]\n        if difference < min_difference:\n            min_difference = difference\n            closest_smaller = sorted_numbers[i]\n            closest_larger = sorted_numbers[i + 1]\n\n    return closest_smaller, closest_larger\n"
+    },
+    {
+     "id": "HumanEval/21",
+     "ok": true,
+     "resposta": "    return [(x - min(numbers)) / (max(numbers) - min(numbers)) for x in numbers]  # type: ignore\n"
+    },
+    {
+     "id": "HumanEval/22",
+     "ok": true,
+     "resposta": "    return [value for value in values if isinstance(value, int)]\n"
+    },
+    {
+     "id": "HumanEval/23",
+     "ok": true,
+     "resposta": "    return len(string)\n"
+    },
+    {
+     "id": "HumanEval/24",
+     "ok": true,
+     "resposta": "    for i in range(n // 2, 0, -1):\n        if n % i == 0:\n            return i\n    return 1\n"
+    },
+    {
+     "id": "HumanEval/25",
+     "ok": true,
+     "resposta": "    factors = []\n    # Check for number of 2s that divide n\n    while n % 2 == 0:\n        factors.append(2)\n        n = n // 2\n    # n must be odd at this point, so a skip of 2 (i.e., i = i + 2) can be used\n    for i in range(3, int(n**0.5) + 1, 2):\n        # While i divides n, append i and divide n\n        while n % i == 0:\n            factors.append(i)\n            n = n // i\n    # Condition if n is a prime number greater than 2\n    if n > 2:\n        factors.append(n)\n    return factors\n"
+    },
+    {
+     "id": "HumanEval/26",
+     "ok": false,
+     "resposta": "    seen = set()\n    result = []\n    for number in numbers:\n        if number not in seen:\n            seen.add(number)\n            result.append(number)\n    return result\n"
+    },
+    {
+     "id": "HumanEval/27",
+     "ok": false,
+     "resposta": "    return string.replace lower, upper)\n"
+    },
+    {
+     "id": "HumanEval/28",
+     "ok": false,
+     "resposta": "    return ''.join(degrees) if degrees else''\n\n"
+    },
+    {
+     "id": "HumanEval/29",
+     "ok": false,
+     "resposta": "    return [s for s in lines if s.startswith(prefix)]\n\n"
+    },
+    {
+     "id": "HumanEval/30",
+     "ok": true,
+     "resposta": "    return [x for x in l if x > 0]\n"
+    },
+    {
+     "id": "HumanEval/31",
+     "ok": true,
+     "resposta": "    if n <= 1:\n        return False\n    if n <= 3:\n        return True\n    if n % 2 == 0 or n % 3 == 0:\n        return False\n    i = 5\n    while i * i <= n:\n        if n % i == 0 or n % (i + 2) == 0:\n            return False\n        i += 6\n    return True\n"
+    },
+    {
+     "id": "HumanEval/32",
+     "ok": false,
+     "resposta": "    if len(xz) % 2 != 0:\n        raise ValueError(\"x must have even number of coefficients\")\n\n    if max(abs(x) for x in xs) < 1:\n        raise ValueError(\"x must be greater than 1\")\n\n    for x in range(-100, 100):\n        if abs(poly(xz, x)) < 1e-6:\n            return x\n\n    raise ValueError(\"No solution found.\")\n"
+    },
+    {
+     "id": "HumanEval/33",
+     "ok": false,
+     "resposta": "    # Create a new list to store the result\n    result = []\n    # Iterate over the list\n    for i, value in enumerate(l):\n        # If the index is divisible by 3, sort the value\n        if i % 3 == 0:\n            result.append(sorted([value]))\n        else:\n            result.append(value)\n    return result\n"
+    },
+    {
+     "id": "HumanEval/34",
+     "ok": true,
+     "resposta": "    return sorted(set(l))\n"
+    },
+    {
+     "id": "HumanEval/35",
+     "ok": true,
+     "resposta": "    return max(l)\n"
+    },
+    {
+     "id": "HumanEval/36",
+     "ok": true,
+     "resposta": "    count = 0\n    for i in range(1, n):\n        if i % 11 == 0 or i % 13 == 0:\n            count += str(i).count('7')\n    return count\n"
+    },
+    {
+     "id": "HumanEval/37",
+     "ok": false,
+     "resposta": "    l_prime = [l[i] for i in range(len(l)) if i % 2 == 0]\n    l_prime.sort()\n    l_prime.extend([l[i] for i in range(len(l)) if i % 2 == 1])\n    return l_prime\n"
+    },
+    {
+     "id": "HumanEval/38",
+     "ok": false,
+     "resposta": "    # split string to groups. Each of length 3.\n    groups = [s[(3 * i):min((3 * i + 3), len(s))] for i in range((len(s) + 2) // 3)]\n    # cycle elements in each group. unless group has fewer elements than 3.\n    groups = [(group[1:] + group[0]) if len(group) == 3 else group for group in groups]\n    return \"\".join(groups)\n"
+    },
+    {
+     "id": "HumanEval/39",
+     "ok": false,
+     "resposta": "    a, b = 0, 1\n    count = 0\n    while count < n:\n        if is_prime(b):\n            count += 1\n        a, b = b, a + b\n    return b\n"
+    },
+    {
+     "id": "HumanEval/40",
+     "ok": true,
+     "resposta": "    # Sort the list to make it easier to find the required triplets\n    l.sort()\n\n    # Iterate through the list to find triplets that sum to zero\n    for i in range(len(l) - 2):\n        # Use two指针 to find the other two elements\n        left, right = i + 1, len(l) - 1\n        while left < right:\n            current_sum = l[i] + l[left] + l[right]\n            if current_sum == 0:\n                return True\n            elif current_sum < 0:\n                left += 1\n            else:\n                right -= 1\n    return False\n"
+    },
+    {
+     "id": "HumanEval/41",
+     "ok": false,
+     "resposta": "    return n * (n - 1) // 2\n"
+    },
+    {
+     "id": "HumanEval/42",
+     "ok": true,
+     "resposta": "    return [x + 1 for x in l]\n"
+    },
+    {
+     "id": "HumanEval/43",
+     "ok": true,
+     "resposta": "    # Create a set to store the elements we have seen so far\n    seen = set()\n    \n    for num in l:\n        # Check if the negation of the current number is in the set\n        if -num in seen:\n            return True\n        # Add the current number to the set\n        seen.add(num)\n    \n    return False\n"
+    },
+    {
+     "id": "HumanEval/44",
+     "ok": true,
+     "resposta": "    if base < 2 or base > 36:\n        raise ValueError(\"Base must be between 2 and 36\")\n\n    digits = []\n    while x:\n        digits.append(int(x % base))\n        x //= base\n\n    return ''.join(str(digit) if digit < 10 else chr(digit - 10 + ord('A')) for digit in digits[::-1])\n"
+    },
+    {
+     "id": "HumanEval/45",
+     "ok": true,
+     "resposta": "    return 0.5 * a * h\n"
+    },
+    {
+     "id": "HumanEval/46",
+     "ok": true,
+     "resposta": "    if n == 0:\n        return 0\n    elif n == 1:\n        return 0\n    elif n == 2:\n        return 2\n    elif n == 3:\n        return 0\n    else:\n        fib4s = [0, 0, 2, 0]\n        for i in range(4, n+1):\n            fib4s.append(fib4s[-1] + fib4s[-2] + fib4s[-3] + fib4s[-4])\n        return fib4s[-1]\n"
+    },
+    {
+     "id": "HumanEval/47",
+     "ok": true,
+     "resposta": "    l = sorted(l)\n    n = len(l)\n    if n % 2 == 1:\n        return l[n // 2]\n    else:\n        return (l[n // 2 - 1] + l[n // 2]) / 2\n"
+    },
+    {
+     "id": "HumanEval/48",
+     "ok": true,
+     "resposta": "    return text == text[::-1]\n"
+    },
+    {
+     "id": "HumanEval/49",
+     "ok": false,
+     "resposta": "    if n == 0:\n        return 1\n    return (2 * modp(n - 1, p)) % p\n"
+    },
+    {
+     "id": "HumanEval/50",
+     "ok": true,
+     "resposta": "    return \"\".join([chr((ord(ch) - 5 - ord(\"a\") + 26) % 26 + ord(\"a\")) for ch in s])\n"
+    },
+    {
+     "id": "HumanEval/51",
+     "ok": false,
+     "resposta": "    vowels = 'aeiou'\n    result = ''\n    for char in text:\n        if char not in vowels:\n            result += char\n    return result\n"
+    },
+    {
+     "id": "HumanEval/52",
+     "ok": true,
+     "resposta": "    return all(num < t for num in l)\n"
+    },
+    {
+     "id": "HumanEval/53",
+     "ok": true,
+     "resposta": "    return x + y\n"
+    },
+    {
+     "id": "HumanEval/54",
+     "ok": false,
+     "resposta": "    return sorted(s0) == sorted(s1)\n"
+    },
+    {
+     "id": "HumanEval/55",
+     "ok": true,
+     "resposta": "    if n <= 1:\n        return n\n    else:\n        return fib(n - 1) + fib(n - 2)\n"
+    },
+    {
+     "id": "HumanEval/56",
+     "ok": false,
+     "resposta": "    stack = []\n    for bracket in brackets:\n        if bracket == \"<\":\n            stack.append \"<\")\n        elif bracket == \"():\n            stack.append())\n        elif bracket == \"():\n            if not stack or stack[-1] != \"<\":\n                return False\n            stack.pop()\n        elif bracket ==):\n            if not stack or stack[-1] !=):\n                return False\n            stack.pop()\n    return not stack\n"
+    },
+    {
+     "id": "HumanEval/57",
+     "ok": true,
+     "resposta": "    return all((l[i] <= l[i + 1] for i in range(len(l) - 1))) or all((l[i] >= l[i + 1] for i in range(len(l) - 1)))\n"
+    },
+    {
+     "id": "HumanEval/58",
+     "ok": true,
+     "resposta": "    return sorted(set(l1) & set(l2))\n"
+    },
+    {
+     "id": "HumanEval/59",
+     "ok": true,
+     "resposta": "    # Initialize the largest prime factor variable\n    largest_prime = -1\n\n    # Divide n by 2 to remove all even factors\n    while n % 2 == 0:\n        largest_prime = 2\n        n //= 2\n\n    # n must be odd at this point, so a skip of 2 (i.e., i = i + 2) can be used\n    for i in range(3, int(n**0.5) + 1, 2):\n        # While i divides n, remove i and set largest_prime to i\n        while n % i == 0:\n            largest_prime = i\n            n //= i\n\n    # If n is a prime number and is greater than 2\n    if n > 2:\n        largest_prime = n\n\n    return largest_prime\n"
+    },
+    {
+     "id": "HumanEval/60",
+     "ok": true,
+     "resposta": "    return sum(range(1, n + 1))\n"
+    },
+    {
+     "id": "HumanEval/61",
+     "ok": false,
+     "resposta": "    stack = []\n    for bracket in brackets:\n        if bracket == '(':\n            stack.append(')')\n        elif bracket == ')':\n            if not stack or stack[-1] != '(':\n                return False\n            stack.pop()\n    return not stack\n"
+    },
+    {
+     "id": "HumanEval/62",
+     "ok": false,
+     "resposta": "    return [i * j for i, j in zip(xv, range(1, len(xv) + 1))]\n"
+    },
+    {
+     "id": "HumanEval/63",
+     "ok": true,
+     "resposta": "    if n == 0 or n == 1:\n        return 0\n    elif n == 2:\n        return 1\n    else:\n        fib = [0, 0, 1]\n        for i in range(3, n+1):\n            fib.append(fib[i-1] + fib[i-2] + fib[i-3])\n        return fib[n]\n"
+    },
+    {
+     "id": "HumanEval/64",
+     "ok": false,
+     "resposta": "    # Convert the input string to a list of characters\n    characters = list(s)\n    # Initialize a counter for vowels\n    vowel_count = 0\n    # Iterate over each character in the list\n    for char in characters:\n        # Check if the character is a vowel\n        if char in 'aeiou':\n            vowel_count += 1\n    return vowel_count\n"
+    },
+    {
+     "id": "HumanEval/65",
+     "ok": false,
+     "resposta": "    if shift > len(str(x)):\n        return str(x)[::-1]\n    return str(x)[(-shift):]\n"
+    },
+    {
+     "id": "HumanEval/66",
+     "ok": false,
+     "resposta": "    # Convert string to list of characters\n    characters = list(s)\n    \n    # Initialize sum\n    total_sum = 0\n    \n    # Iterate over the characters\n    for char in characters:\n        # Convert character to integer (ord function returns the absolute value of the code point)\n        # Since we are only interested in the sum of the upper case letters, we filter out the lower case letters\n        if char.is upper():\n            total_sum += ord(char)\n    \n    return total_sum\n"
+    },
+    {
+     "id": "HumanEval/67",
+     "ok": false,
+     "resposta": "    # split the string into parts\n    parts = s.split()\n    # convert the string parts to integers\n    apples = int(parts[0])\n    oranges = int(parts[1])\n    # calculate the number of mango fruits\n    mangoes = int(s.split()[-1])\n    # return the number of mango fruits\n    return mangoes\n"
+    },
+    {
+     "id": "HumanEval/68",
+     "ok": false,
+     "resposta": "    # Check if the array is empty\n    if not arr:\n        return []\n\n    # Initialize variables to store the smallest even value and its index\n    smallest_even_value = float('inf')\n    smallest_even_index = -1\n\n    # Iterate through the array to find the smallest even value\n    for i, value in enumerate(arr):\n        if value % 2 == 0 and value < smallest_even_value:\n            smallest_even_value = value\n            smallest_even_index = i\n\n    # Return the smallest even value and its index\n    return [smallest_even_value, smallest_even_index]\n"
+    },
+    {
+     "id": "HumanEval/69",
+     "ok": true,
+     "resposta": "    # Create a dictionary to store the frequency of each integer\n    freq = {}\n    for num in lst:\n        if num in freq:\n            freq[num] += 1\n        else:\n            freq[num] = 1\n    \n    # Iterate through the list in reverse to find the greatest integer with the required property\n    for num in sorted(freq.keys(), reverse=True):\n        if freq[num] >= num:\n            return num\n    \n    return -1\n"
+    },
+    {
+     "id": "HumanEval/70",
+     "ok": false,
+     "resposta": "    # Sort the list in descending order\n    lst = sorted(lst, reverse=True)\n    # Initialize the result list\n    result = []\n    # Iterate over the list and add elements to the result list\n    for i in range(0, len(lst), 2):\n        if i + 1 < len(lst):\n            result.append(lst[i])\n            result.append(lst[i + 1])\n    return result\n"
+    },
+    {
+     "id": "HumanEval/71",
+     "ok": true,
+     "resposta": "    if (a + b > c) and (a + c > b) and (b + c > a):\n        s = (a + b + c) / 2\n        area = (s * (s - a) * (s - b) * (s - c)) ** 0.5\n        return round(area, 2)\n    else:\n        return -1\n"
+    },
+    {
+     "id": "HumanEval/72",
+     "ok": false,
+     "resposta": "    if sum(q) <= w and sum(q) == sum(sorted(q, reverse=True)):\n        return True\n    else:\n        return False\n"
+    },
+    {
+     "id": "HumanEval/73",
+     "ok": false,
+     "resposta": "    n = len(arr)\n    changes = 0\n    for i in range(n // 2):\n        if arr[i] != arr[n - 1 - i]:\n            changes += 1\n    if n % 2 != 0:\n        changes += 1  # If the length is odd, one element is already in the middle and doesn't need to be changed\n    return changes\n"
+    },
+    {
+     "id": "HumanEval/74",
+     "ok": false,
+     "resposta": "    if not lst1 or not lst2:\n        return lst1 if lst1 else lst2\n    total1 = sum(len(s) for s in lst1)\n    total2 = sum(len(s) for s in lst2)\n    if total1 < total2:\n        return lst1\n    elif total1 > total2:\n        return lst2\n    else:\n        return lst1\n"
+    },
+    {
+     "id": "HumanEval/75",
+     "ok": false,
+     "resposta": "    if a < 100:\n        for i in range(2, a):\n            if a % i == 0:\n                if is_prime(i) and is_prime(a // i) and is_prime(a // (i * i)):\n                    return True\n    return False\n"
+    },
+    {
+     "id": "HumanEval/76",
+     "ok": false,
+     "resposta": "    # Check if x is a power of n by taking the logarithm of x to the base n\n    # and checking if the result is an integer.\n    import math\n    log_result = math.log(x, n)\n    return log_result.is_integer()\n"
+    },
+    {
+     "id": "HumanEval/77",
+     "ok": false,
+     "resposta": "    # your code here\n    if a < 0:\n        return False\n    cube_root = round(a ** (1/3))\n    return cube_root ** 3 == a"
+    },
+    {
+     "id": "HumanEval/78",
+     "ok": false,
+     "resposta": "    prime_digits = {'2', '3', '5', '7'}\n    count = 0\n    for digit in num:\n        if digit in prime_digits:\n            count += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/79",
+     "ok": true,
+     "resposta": "    # Convert the decimal number to binary and remove the '0b' prefix\n    binary_str = bin(decimal)[2:]\n    # Add the extra characters 'db' at the beginning and end\n    return \"db\" + binary_str + \"db\"\n"
+    },
+    {
+     "id": "HumanEval/80",
+     "ok": true,
+     "resposta": "    # Check if the length of the string is at least 3\n    if len(s) < 3:\n        return False\n\n    # Check if every 3 consecutive letters are distinct\n    for i in range(len(s) - 2):\n        if s[i] == s[i + 1] or s[i + 1] == s[i + 2] or s[i] == s[i + 2]:\n            return False\n\n    return True\n"
+    },
+    {
+     "id": "HumanEval/81",
+     "ok": false,
+     "resposta": "    letter_grades = ['A+', 'A', 'C-', 'C', 'A-']\n    return [letter_grades[grade] for grade in grades]\n"
+    },
+    {
+     "id": "HumanEval/82",
+     "ok": true,
+     "resposta": "    length = len(string)\n    if length < 2:\n        return False\n    for i in range(2, int(length**0.5) + 1):\n        if length % i == 0:\n            return False\n    return True\n"
+    },
+    {
+     "id": "HumanEval/83",
+     "ok": false,
+     "resposta": "    # Count of n-digit numbers that start with 1\n    count_start_1 = 10**(n-1)\n    # Count of n-digit numbers that end with 1\n    count_end_1 = 10**(n-1)\n    # Count of n-digit numbers that both start and end with 1\n    count_start_end_1 = 10**(n-2)\n    \n    # Apply the principle of inclusion and exclusion\n    total_count = count_start_1 + count_end_1 - count_start_end_1\n    return total_count\n"
+    },
+    {
+     "id": "HumanEval/84",
+     "ok": false,
+     "resposta": "    # Convert the integer to binary and remove the \"0b\" prefix\n    binary_representation = bin(N)[2:]\n    \n    # Calculate the sum of the digits in the binary representation\n    sum_of_digits = sum(int(digit) for digit in binary_representation)\n    \n    # Convert the sum of digits to binary and remove the \"0b\" prefix\n    binary_sum_of_digits = bin(sum_of_digits)[2:]\n    \n    return binary_sum_of_digits\n"
+    },
+    {
+     "id": "HumanEval/85",
+     "ok": false,
+     "resposta": "    result = []\n    for i, x in enumerate(lst):\n        if i % 2 == 1 and x % 2 == 0:\n            result.append(x)\n    return result\n"
+    },
+    {
+     "id": "HumanEval/86",
+     "ok": false,
+     "resposta": "    # Split the string into words\n    words = s.split()\n    # Join the sorted words\n    sorted_words = ''.join(sorted(word) for word in words)\n    return sorted_words\n"
+    },
+    {
+     "id": "HumanEval/87",
+     "ok": false,
+     "resposta": "    # Check if the list is empty or not\n    if not lst:\n        return []\n    \n    # Initialize the result list\n    result = []\n    \n    # Iterate over each row in the list\n    for row in lst:\n        # Iterate over each element in the row\n        for i, x in enumerate(row):\n            # If the element matches the given integer x, add the coordinate to the result\n            if x == x:\n                result.append((row.index(x), i))\n    \n    # Sort the result list by rows in ascending order\n    result.sort(key=lambda item: item[0])\n    \n    # Sort the result list by columns in descending order\n    result.sort(key=lambda item: item[1], reverse=True)\n    \n    return result\n"
+    },
+    {
+     "id": "HumanEval/88",
+     "ok": false,
+     "resposta": "    # Create a copy of the given array\n    sorted_array = array[:]\n    \n    # Sort the array in ascending order if the sum of the first and last index values is odd\n    if sum(range(len(sorted_array))) % 2 == 1:\n        sorted_array.sort()\n    \n    # Sort the array in descending order if the sum of the first and last index values is even\n    else:\n        sorted_array.sort(reverse=True)\n    \n    return sorted_array\n"
+    },
+    {
+     "id": "HumanEval/89",
+     "ok": true,
+     "resposta": "    alphabet = 'abcdefghijklmnopqrstuvwxyz'\n    shift = 2 * 2\n    encrypted = ''\n    for char in s:\n        if char in alphabet:\n            index = alphabet.index(char)\n            new_index = (index + shift) % 26\n            encrypted += alphabet[new_index]\n        else:\n            encrypted += char\n    return encrypted\n"
+    },
+    {
+     "id": "HumanEval/90",
+     "ok": false,
+     "resposta": "    if len(lst) < 2:\n        return None\n    lst = sorted(set(lst))\n    return lst[1]\n"
+    },
+    {
+     "id": "HumanEval/91",
+     "ok": false,
+     "resposta": "    count = 0\n    for word in S.split():\n        if word.startswith('I'):\n            count += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/92",
+     "ok": true,
+     "resposta": "    # Check if all numbers are integers\n    if not (isinstance(x, int) and isinstance(y, int) and isinstance(z, int)):\n        return False\n    \n    # Check if one of the numbers is equal to the sum of the other two\n    if (x == y + z) or (y == x + z) or (z == x + y):\n        return True\n    return False\n"
+    },
+    {
+     "id": "HumanEval/93",
+     "ok": false,
+     "resposta": "    # Define the vowels and their positions in the alphabet\n    vowels = 'AEIOU'\n    positions = {v: (v + 2) % 26 for v in vowels}\n    \n    # Define the alphabet\n    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\n    \n    # Define a function to swap case\n    def swap_case message):\n        return message.lower() if message.islower() else message_upper()\n    \n    # Define a function to replace vowels\n    def replace_vowels(message):\n        return message.replace(vowels, [alphabet[positions[v]] for v in vowels])\n    \n    # Apply the functions to the message\n    return swap_case(replace_vowels(share message)))\n"
+    },
+    {
+     "id": "HumanEval/94",
+     "ok": false,
+     "resposta": "    # Filter out non-prime numbers and find the largest prime\n    primes = [num for num in lst if is_prime(num)]\n    largest_prime = max(primes)\n    \n    # Sum the digits of the largest prime\n    sum_of_digits = sum(int(digit) for digit in str(largest_prime))\n    \n    return sum_of_digits\n"
+    },
+    {
+     "id": "HumanEval/95",
+     "ok": false,
+     "resposta": "    if not dict:\n        return False\n    \n    for key in dict:\n        if (dict[key].lower() == dict[key].lower() or dict[key].lower() == 'a' and dict[key].lower() == 'A') and not (dict[key].lower() == 'a' and dict[key].lower() == 'A'):\n            continue\n        else:\n            return False\n    return True\n"
+    },
+    {
+     "id": "HumanEval/96",
+     "ok": true,
+     "resposta": "    primes = []\n    for i in range(2, n):\n        is_prime = True\n        for j in range(2, int(i**0.5) + 1):\n            if i % j == 0:\n                is_prime = False\n                break\n        if is_prime:\n            primes.append(i)\n    return primes\n"
+    },
+    {
+     "id": "HumanEval/97",
+     "ok": true,
+     "resposta": "    # Extract the unit digits of the two numbers\n    unit_digit_a = a % 10\n    unit_digit_b = b % 10\n    \n    # Multiply the unit digits\n    product_unit_digits = unit_digit_a * unit_digit_b\n    \n    return product_unit_digits\n"
+    },
+    {
+     "id": "HumanEval/98",
+     "ok": false,
+     "resposta": "    count = 0\n    vowels = set('aeiou')\n    for i, char in enumerate(s):\n        if i % 2 == 1 and char in vowels:\n            count += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/99",
+     "ok": false,
+     "resposta": "    # Convert the string to a float\n    value = float(value)\n    # Calculate the floor and ceiling of the value\n    floor = math.floor(value)\n    ceil = math.ceil(value)\n    # Determine which one is closer\n    if (value - floor) < (ceil - value):\n        return floor\n    else:\n        return ceil\n"
+    },
+    {
+     "id": "HumanEval/100",
+     "ok": false,
+     "resposta": "    # Initialize the list with the first level\n    pile = [n]\n    \n    # Determine the next odd or even number\n    next_number = n + 1\n    \n    # Generate the rest of the levels\n    while len(pile) < n:\n        if n % 2 == 0:\n            # If n is even, the next number is the next even number\n            next_number += 1\n        else:\n            # If n is odd, the next number is the next odd number\n            next_number += 2\n        \n        pile.append(next_number)\n    \n    return pile\n"
+    },
+    {
+     "id": "HumanEval/101",
+     "ok": false,
+     "resposta": "    return s.split()\n"
+    },
+    {
+     "id": "HumanEval/102",
+     "ok": true,
+     "resposta": "    # Check if x is greater than y\n    if x > y:\n        return -1\n    # Find the smallest even number in the range [x, y]\n    smallest_even = x if x % 2 == 0 else x + 1\n    # Find the largest even number in the range [x, y]\n    largest_even = y if y % 2 == 0 else y - 1\n    # Return the largest even number in the range\n    return largest_even if smallest_even <= largest_even else -1\n"
+    },
+    {
+     "id": "HumanEval/103",
+     "ok": false,
+     "resposta": "    if n > m:\n        return -1\n    total = sum(range(n, m + 1))\n    avg = total / (m - n + 1)\n    rounded_avg = round(avg)\n    return bin(rounded_avg)[2:]\n"
+    },
+    {
+     "id": "HumanEval/104",
+     "ok": false,
+     "resposta": "    result = []\n    for number in x:\n        if not has_even_digits(number):\n            result.append(number)\n    return sorted(result)\n"
+    },
+    {
+     "id": "HumanEval/105",
+     "ok": true,
+     "resposta": "    # Filter out numbers outside the range 1 to 9\n    filtered_arr = [num for num in arr if 1 <= num <= 9]\n    \n    # Sort the filtered array\n    sorted_arr = sorted(filtered_arr)\n    \n    # Reverse the sorted array\n    reversed_arr = sorted_arr[::-1]\n    \n    # Map each digit to its corresponding name\n    digit_to_name = {\n        1: \"One\",\n        2: \"Two\",\n        3: \"Three\",\n        4: \"Four\",\n        5: \"Five\",\n        6: \"Six\",\n        7: \"Seven\",\n        8: \"Eight\",\n        9: \"Nine\"\n    }\n    \n    # Replace each digit with its name\n    result = [digit_to_name[digit] for digit in reversed_arr]\n    \n    return result\n"
+    },
+    {
+     "id": "HumanEval/106",
+     "ok": false,
+     "resposta": "    result = []\n    for i in range(1, n + 1):\n        if i % 2 == 0:\n            result.append(factorial(i))\n        else:\n            result.append(sum(range(1, i + 1)))\n    return result\n"
+    },
+    {
+     "id": "HumanEval/107",
+     "ok": false,
+     "resposta": "    count_even = 0\n    count_odd = 0\n    for i in range(1, n + 1):\n        if is_palindrome(i):\n            if i % 2 == 0:\n                count_even += 1\n            else:\n                count_odd += 1\n    return (count_even, count_odd)\n"
+    },
+    {
+     "id": "HumanEval/108",
+     "ok": false,
+     "resposta": "    count = 0\n    for num in arr:\n        if num < 0:\n            num = -num\n        digit_sum = sum(int(digit) for digit in str(num))\n        if digit_sum > 0:\n            count += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/109",
+     "ok": false,
+     "resposta": "    # Check if the array is empty\n    if not arr:\n        return True\n    \n    # Check if the array is already sorted\n    for i in range(len(arr) - 1):\n        if arr[i] > arr[i + 1]:\n            return False\n    \n    # Check if the array can be sorted by performing right shift operations\n    # We need to check if the array can be sorted by rotating it to the left\n    # until it is sorted. This is equivalent to checking if the array is a\n    # rotation of a sorted array.\n    for i in range(len(arr)):\n        rotated_arr = arr[-1:] + arr[:-1]\n        if rotated_arr == sorted(rotated_arr):\n            return True\n    \n    return False\n"
+    },
+    {
+     "id": "HumanEval/110",
+     "ok": false,
+     "resposta": "    # Check if all elements in lst1 are even\n    all_even = all(x % 2 == 0 for x in lst1)\n    if all_even:\n        return \" true\"\n    else:\n        return \" false\"\n"
+    },
+    {
+     "id": "HumanEval/111",
+     "ok": false,
+     "resposta": "    if not test:\n        return {}\n    \n    histogram = {}\n    for char in set(test):\n        histogram[char] = histogram.get(char, 0) + test.count(char)\n    \n    max_char = max(hist, key= histogram.get)\n    return {max_char: histogram[max_char], ** histogram} if histogram.get(max_char) > 1 else {max_char: histogram[max_char]}\n"
+    },
+    {
+     "id": "HumanEval/112",
+     "ok": false,
+     "resposta": "    result = []\n    for i in range(len(s)):\n        if s[i] not in c:\n            result.append(s[i])\n    return ''.join(result), is_palindrome(result)\n"
+    },
+    {
+     "id": "HumanEval/113",
+     "ok": false,
+     "resposta": "    # Convert each string in the list to a list of digits\n    digits = [list(map(int, s)) for s in lst]\n    # Count the number of odd digits in each string\n    odd_counts = [sum(1 for d in s if d % 2 != 0) for s in digits]\n    # Construct the final list of strings\n    result = [f\"The number of odd elements {i}n the str{i} of the {len(lst)}n input.\" for i, count in enumerate(odd_counts)]\n    return result\n"
+    },
+    {
+     "id": "HumanEval/114",
+     "ok": false,
+     "resposta": "    min_sum = float('inf')\n    current_sum = 0\n    \n    for num in nums:\n        current_sum += num\n        min_sum = min(min_sum, current_sum)\n        if current_sum < 0:\n            current_sum = 0\n    \n    return min_sum\n"
+    },
+    {
+     "id": "HumanEval/115",
+     "ok": false,
+     "resposta": "    rows, cols = len(grid), len(grid[0])\n    total_water = sum(sum(row) for row in grid)\n    if total_water <= 0:\n        return 0\n    if rows == 0 or cols == 0:\n        return total_water\n\n    # Calculate the number of buckets needed\n    total_buckets = total_water // capacity\n    if total_water % capacity != 0:\n        total_buckets += 1\n\n    # Calculate the number of times the buckets need to be lowered\n    # Each well can be emptied using the buckets\n    # The maximum number of times the buckets need to be lowered is the total number of buckets needed\n    return total_buckets\n"
+    },
+    {
+     "id": "HumanEval/116",
+     "ok": true,
+     "resposta": "    # Convert each number to its binary representation and count the number of ones\n    binary_representations = [bin(num)[2:] for num in arr]\n    ones_count = [binary_representations.count('1') for binary_representations in binary_representations]\n    # Sort based on the number of ones in ascending order\n    sorted_indices = sorted(range(len(ones_count)), key=lambda k: (ones_count[k], arr[k]))\n    # Sort the original array based on the sorted indices\n    return [arr[i] for i in sorted_indices]\n"
+    },
+    {
+     "id": "HumanEval/117",
+     "ok": false,
+     "resposta": "    # split the string into words\n    words = s.split()\n    result = []\n    for word in words:\n        # count the number of consonants in the word\n        consonant_count = sum(1 for char in word if char in 'bcdfghjlgp')\n        if consonant_count == n:\n            result.append(word)\n    return result\n"
+    },
+    {
+     "id": "HumanEval/118",
+     "ok": false,
+     "resposta": "    vowels = set(\"aeiouAEIOU\")\n    for i in range(len(word) - 1):\n        if word[i] not in vowels and word[i + 1] not in vowels:\n            return word[i]\n    return \"\"\n"
+    },
+    {
+     "id": "HumanEval/119",
+     "ok": true,
+     "resposta": "    # Check if the concatenated string is balanced\n    def is_balanced(s):\n        stack = []\n        for char in s:\n            if char == '(':\n                stack.append(char)\n            elif char == ')':\n                if not stack or stack[-1] != '(':\n                    return False\n                stack.pop()\n        return len(stack) == 0\n\n    # Check both possible concatenations\n    s1 = ''.join(lst[0])\n    s2 = ''.join(lst[1])\n    if is_balanced(s1 + s2) or is_balanced(s2 + s1):\n        return 'Yes'\n    else:\n        return 'No'\n"
+    },
+    {
+     "id": "HumanEval/120",
+     "ok": false,
+     "resposta": "    # Use a max-heap to store the k largest elements\n    max heap = []\n    for num in arr:\n        if len(max heap) < k:\n            max heap.append(num)\n        else:\n            # Compare current number with the root of the max-heap\n            if num > max heap[0]:\n                max heap[0] = num\n                # Remove the root and add the new number\n                max heap.pop()\n                max heap.append(num)\n    \n    # Convert the max-heap to a sorted list\n    result = sorted(max heap, reverse=True)\n    return result\n"
+    },
+    {
+     "id": "HumanEval/121",
+     "ok": false,
+     "resposta": "    result = 0\n    for i in range(len(lst)):\n        if i % 2 == 1 and lst[i] % 2 == 1:\n            result += lst[i]\n    return result\n"
+    },
+    {
+     "id": "HumanEval/122",
+     "ok": false,
+     "resposta": "    # Initialize the sum\n    sum_of_elements = 0\n\n    # Iterate through the first k elements of the array\n    for i in range(k):\n        # Check if the current element has at most two digits\n        if 100 > arr[i] >= 10:\n            # Add the element to the sum\n            sum_of_elements += arr[i]\n\n    return sum_of_elements\n"
+    },
+    {
+     "id": "HumanEval/123",
+     "ok": false,
+     "resposta": "    collatz = []\n    while n != 1:\n        if n % 2 == 0:\n            n = n // 2\n        else:\n            n = 3 * n + 1\n        collatz.append(n)\n    collatz.append(1)\n    return sorted(set(collatz), reverse=True)\n"
+    },
+    {
+     "id": "HumanEval/124",
+     "ok": false,
+     "resposta": "    try:\n        date = datetime.strptime(date, \"%m-%d %Y\")\n        if date.month not in range(1, 13):\n            return False\n        if date.month in [1, 3, 5, 7, 8, 10, 12] and date.day < 1 or date_day > 31:\n            return False\n        if date.month in [4, 6, 9, 11] and date_day < 1 or date_day > 30:\n            return False\n        if date.month == 2 and date.day < 1 or date_day > 29:\n            return False\n        return True\n    except ValueError:\n        return False\n"
+    },
+    {
+     "id": "HumanEval/125",
+     "ok": false,
+     "resposta": "    if white spaces in the string:\n        words = re.split(\\s+, new)\n    else:\n        words = new\n    if len(words) == 1:\n        return len([c for c in words[0] if ord(c) % 2 != 0])\n    return words\n"
+    },
+    {
+     "id": "HumanEval/126",
+     "ok": false,
+     "resposta": "    # Check if the list is empty or has only one element\n    if len(lst) <= 1:\n        return True\n    \n    # Check if the list is sorted in ascending order\n    for i in range(len(lst) - 1):\n        if lst[i] > lst[i + 1]:\n            return False\n    \n    # Check if there are any duplicates\n    for i in range(len(lst) - 1):\n        if lst[i] == lst[i + 1]:\n            return False\n    \n    return True\n"
+    },
+    {
+     "id": "HumanEval/127",
+     "ok": false,
+     "resposta": "    start = max(interval1[0], interval2[0])\n    end = min(interval1[1], interval2[1])\n    if start > end:\n        return \"NO\"\n    length = end - start + 1\n    if length == 1:\n        return \"NO\"\n    for i in range(2, length):\n        if length % i == 0:\n            return \"NO\"\n    return \" true\"\n"
+    },
+    {
+     "id": "HumanEval/128",
+     "ok": true,
+     "resposta": "    if not arr:\n        return None\n\n    total_sum = 0\n    product_of_signs = 1\n\n    for num in arr:\n        if num == 0:\n            product_of_signs = 0\n        else:\n            product_of_signs *= (1 if num > 0 else -1)\n\n    total_sum = sum(abs(num) * product_of_signs for num in arr)\n\n    return total_sum\n"
+    },
+    {
+     "id": "HumanEval/129",
+     "ok": false,
+     "resposta": "    N = len(grid)\n    visited = [[False] * N for _ in range(N)]\n    visited[0][0] = True\n    path = []\n    visited[0][0] = False\n\n    def dfs(x, y, path, visited, grid, k):\n        nonlocal path\n        if len(path) == k:\n            return path\n\n        for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:\n            nx, ny = x + dx, y + dy\n            if 0 <= nx < N and 0 <= ny < N and not visited[nx][ny] and 1 <= grid[nx][ny] <= N * N:\n                visited[nx][ny] = True\n                path.append(grid[nx][ny])\n                result = dfs(nx, ny, path, visited, grid, k)\n                if result:\n                    return result\n                path.pop()\n                visited[nx][ny] = False\n        return path\n\n    for i in range(N):\n        for j in range(N):\n            if not visited[i][j]:\n                path = dfs(i, j, [], visited, grid, k)\n                if path:\n                    return path\n\n    return None\n"
+    },
+    {
+     "id": "HumanEval/130",
+     "ok": false,
+     "resposta": "    if n == 0:\n        return [1]\n    elif n == 1:\n        return [1, 3]\n    else:\n        tri_list = [1, 3]\n        for i in range(2, n + 1):\n            if i % 2 == 0:\n                tri_list.append(1 + i // 2)\n            else:\n                tri_list.append(tri_list[i - 1] + tri_list[i - 2] + tri_list[i])\n        return tri_list\n"
+    },
+    {
+     "id": "HumanEval/131",
+     "ok": false,
+     "resposta": "    if n == 0:\n        return 0\n    product = 1\n    while n > 0:\n        digit = n % 10\n        if digit % 2 != 0:\n            product *= digit\n        n //= 10\n    return product\n"
+    },
+    {
+     "id": "HumanEval/132",
+     "ok": false,
+     "resposta": "    # Check if the string contains only square brackets\n    if not all(char in '['[' for char in string):\n        return False\n\n    # Initialize a counter for nested brackets\n    nested_count = 0\n\n    # Iterate through each character in the string\n    for char in string:\n        if char == '[':\n            nested_count += 1\n        elif char == ']\n\n            if nested_count > 0:\n                nested_count -= 1\n            else:\n                return False\n\n    return nested_count > 0\n"
+    },
+    {
+     "id": "HumanEval/133",
+     "ok": false,
+     "resposta": "    # your code here\n    rounded_list = [round(num) for num in lst]\n    return sum(num ** 2 for num in rounded_list)\n"
+    },
+    {
+     "id": "HumanEval/134",
+     "ok": false,
+     "resposta": "    def check string:\n        if string[-1] in ' lower upper A B C D E F G H I J K L M N O P Q R S T U V W X Y Z':\n            return True\n        else:\n            return False\n    return check\n"
+    },
+    {
+     "id": "HumanEval/135",
+     "ok": false,
+     "resposta": "    n = len(arr)\n    if n < 2:\n        return -1\n    max_index = 0\n    for i in range(1, n):\n        if arr[i] <= arr[i-1]:\n            max_index = i\n        else:\n            break\n    return max_index\n"
+    },
+    {
+     "id": "HumanEval/136",
+     "ok": true,
+     "resposta": "    # Find the largest negative integer\n    try:\n        a = max(x for x in lst if x < 0)\n    except ValueError:\n        a = None\n\n    # Find the smallest positive integer\n    try:\n        b = min(x for x in lst if x > 0)\n    except ValueError:\n        b = None\n\n    return a, b\n"
+    },
+    {
+     "id": "HumanEval/137",
+     "ok": false,
+     "resposta": "    if isinstance(a, str):\n        a = a.replace('.', '')\n    if isinstance(b, str):\n        b = b.replace('.', '')\n    if a == b:\n        return None\n    if a == float(b):\n        return b\n    if b == float(a):\n        return a\n    if a > b:\n        return a\n    return b\n"
+    },
+    {
+     "id": "HumanEval/138",
+     "ok": false,
+     "resposta": "    if n < 8:\n        return False\n    return True\n"
+    },
+    {
+     "id": "HumanEval/139",
+     "ok": false,
+     "resposta": "    if n == 0:\n        return 1\n    else:\n        return factorial(n) * special_factorial(n-1)\n"
+    },
+    {
+     "id": "HumanEval/140",
+     "ok": false,
+     "resposta": "    # split the string by spaces and replace each space with an underscore\n    # if there are more than 2 consecutive spaces, replace them with a minus sign\n    return ''.join(f{-1 if len(set(s)) == 1 else ' }' if s else ' ' for s in text.split(' ')))\n"
+    },
+    {
+     "id": "HumanEval/141",
+     "ok": false,
+     "resposta": "    if not file_name:\n        return 'No'\n    if len(file_name) > 3:\n        return 'No'\n    if dot not in file_name:\n        return 'No'\n    if file_name[:dot] == '':\n        return 'No'\n    if file_name[:dot] not in string.digits and file_name[:dot] not in string.abc and file_name[:dot] not in string.tuv:\n        return 'No'\n    if file_name[dot+1] not in string small case:\n        return 'No'\n    return 'Yes'\n"
+    },
+    {
+     "id": "HumanEval/142",
+     "ok": false,
+     "resposta": "    result = 0\n    for i, x in enumerate(lst):\n        if i % 3 == 0:\n            result += x**2\n        elif i % 4 == 0:\n            result += x**3\n    return result\n"
+    },
+    {
+     "id": "HumanEval/143",
+     "ok": false,
+     "resposta": "    def is_prime(n):\n        if n <= 1:\n            return False\n        for i in range(2, int(n**0.5) + 1):\n            if n % i == 0:\n                return False\n        return True\n\n    words = sentence.split()\n    prime_words = [word for word in words if len(word) in primes]\n\n    return ''.join(prime_words)\n"
+    },
+    {
+     "id": "HumanEval/144",
+     "ok": false,
+     "resposta": "    x_num, x_den = map(int, x.split /)\n    n_num, n_den = map(int, n.split /)\n    product_num = x_num * n_num\n    product_den = x_den * n_den\n    return product_num % product_den == 0\n"
+    },
+    {
+     "id": "HumanEval/145",
+     "ok": false,
+     "resposta": "    # Use a custom comparison function for sorting\n    def compare(x, y):\n        sum_x = sum(int(digit) for digit in str(x))\n        sum_y = sum(int(digit) for digit in str(y))\n        if sum_x == sum_y:\n            return x < y\n        return sum_x < sum_y\n\n    # Sort the list using the custom comparison function\n    sorted_list = sorted(nums, key=lambda x: (sum(int(digit) for digit in str(x)), nums.index(x)))\n    return sorted_list\n"
+    },
+    {
+     "id": "HumanEval/146",
+     "ok": true,
+     "resposta": "    # your code here\n    count = 0\n    for num in nums:\n        if num > 10:\n            first_digit = int(str(num)[0])\n            last_digit = int(str(num)[-1])\n            if first_digit % 2 != 0 and last_digit % 2 != 0:\n                count += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/147",
+     "ok": false,
+     "resposta": "    count = 0\n    for i in range(n):\n        for j in range(i + 1, n):\n            for k in range(j + 1, n):\n                if (a[i] + a[j] + a[k]) % 3 == 0:\n                    count += 1\n    return count\n"
+    },
+    {
+     "id": "HumanEval/148",
+     "ok": false,
+     "resposta": "    planets = [\"Mercury\", \"Venus\", \"Earth\", \"Mars\", \"Jupiter\", \"Saturn\", \"Uranus\", \"Neptune\"]\n    index1 = planets.index( planet1 )\n    index2 = planets.index( planet2 )\n    if index1 < index2:\n        return tuple( planets[index1: index2+1] )\n    else:\n        return tuple( planets[index2: index1+1] )\n\n\n"
+    },
+    {
+     "id": "HumanEval/149",
+     "ok": true,
+     "resposta": "    # Remove words with odd lengths\n    lst = [word for word in lst if len(word) % 2 == 0]\n    # Sort the list by length of each word, and then alphabetically\n    lst.sort(key=lambda x: (len(x), x))\n    return lst\n"
+    },
+    {
+     "id": "HumanEval/150",
+     "ok": false,
+     "resposta": "    if is_prime(n):\n        return x\n    else:\n        return y\n"
+    },
+    {
+     "id": "HumanEval/151",
+     "ok": true,
+     "resposta": "    if not lst:\n        return 0\n    return sum(x**2 for x in lst if x > 0 and x % 2 == 1)\n"
+    },
+    {
+     "id": "HumanEval/152",
+     "ok": false,
+     "resposta": "    return [abs(guess - score) for score, guess in zip(scores, guesses)]\n"
+    },
+    {
+     "id": "HumanEval/153",
+     "ok": false,
+     "resposta": "    extensions = sorted(atrix, key=lambda x: x[2] - x[3], reverse=True)\n    return f\"{class_name}. extension_{扩展s[0][0]}_{扩展s[0][1]}_{扩展s[0][2]}_{扩展s[0][3]}\"\n"
+    },
+    {
+     "id": "HumanEval/154",
+     "ok": false,
+     "resposta": "    for i in range(len(a)):\n        if a == b[i:] + b[:i]:\n            return True\n    return False\n"
+    },
+    {
+     "id": "HumanEval/155",
+     "ok": true,
+     "resposta": "    digits = [int(d) for d in str(abs(num))]\n    even_count = sum(1 for d in digits if d % 2 == 0)\n    odd_count = sum(1 for d in digits if d % 2 != 0)\n    return even_count, odd_count\n"
+    },
+    {
+     "id": "HumanEval/156",
+     "ok": false,
+     "resposta": "    # Define the Roman numeral symbols and their corresponding values\n    roman_numerals = [\n        (1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'),\n        (100, 'C'), (90, 'XC'), (50, 'L'), (40, 'XL'),\n        (10, 'X'), (9, 'IX'), (5, 'V'), (4, 'IV'), (1, 'I')\n    ]\n    \n    result = ''\n    for value, numeral in roman_numerals:\n        while number >= value:\n            result += numeral\n            number -= value\n    return result\n"
+    },
+    {
+     "id": "HumanEval/157",
+     "ok": true,
+     "resposta": "    sides = sorted([a, b, c])\n    return sides[2]**2 == sides[0]**2 + sides[1]**2\n"
+    },
+    {
+     "id": "HumanEval/158",
+     "ok": true,
+     "resposta": "    max_word = \"\"\n    max_unique_count = 0\n\n    for word in words:\n        unique_count = len(set(word))\n        if unique_count > max_unique_count or (unique_count == max_unique_count and word < max_word):\n            max_unique_count = unique_count\n            max_word = word\n\n    return max_word\n"
+    },
+    {
+     "id": "HumanEval/159",
+     "ok": false,
+     "resposta": "    if number + need <= remaining:\n        return [number + need, remaining - (number + need)]\n    else:\n        return [number + need, remaining]\n"
+    },
+    {
+     "id": "HumanEval/160",
+     "ok": false,
+     "resposta": "    result = operand[0]\n    for i in range(1, len( operand)):\n        if type( operand[i]) == int:\n            if operator[i-1] == '+':\n                result += operand[i]\n            elif operator[i-1] == '-':\n                result -= operand[i]\n            elif operator[i-1] == '*':\n                result *= operand[i]\n            elif operator[i-1] == '/':\n                result /= operand[i]\n            elif operator[i-1] == '**':\n                result **= operand[i]\n        else:\n            raise ValueError(\"Invalid operator\")\n    return result\n"
+    },
+    {
+     "id": "HumanEval/161",
+     "ok": false,
+     "resposta": "    if not any(c.isalpha() for c in s):\n        return s[::-1]\n    reversed_s = \"\"\n    for char in s:\n        if char.isalpha():\n            if char.islower():\n                reversed_s += reversed(char)\n            else:\n                reversed_s += reversed(char-case)\n        else:\n            reversed_s += char\n    return reversed_s\n"
+    },
+    {
+     "id": "HumanEval/162",
+     "ok": false,
+     "resposta": "    if not text:\n        return None\n    return MD5text(text)\n"
+    },
+    {
+     "id": "HumanEval/163",
+     "ok": false,
+     "resposta": "    result = []\n    for num in range(a, b + 1):\n        num_str = str(num)\n        for digit in num_str:\n            if int(digit) % 2 == 0:\n                result.append(int(digit))\n                break\n    return sorted(result)\n"
+    }
+   ]
+  }
+ },
+ "originais": [
+  "Qwen/Qwen2.5-Coder-1.5B-Instruct",
+  "Qwen/Qwen2.5-Math-1.5B-Instruct"
+ ],
+ "n": {
+  "humaneval": 164
+ },
+ "pareado": {
+  "humaneval": {
+   "orquestra (orq-coder-com-math)": {
+    "Qwen/Qwen2.5-Coder-1.5B-Instruct": [
+     31,
+     7,
+     0.00011616700794547796
+    ],
+    "Qwen/Qwen2.5-Math-1.5B-Instruct": [
+     55,
+     10,
+     1.1753602809018611e-08
+    ],
+    "roteador": [
+     31,
+     7,
+     0.00011616700794547796
+    ]
+   }
+  }
+ }
+}

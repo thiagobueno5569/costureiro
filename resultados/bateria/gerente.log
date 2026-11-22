@@ -1,0 +1,54 @@
+[13:45:07] preparando: dados das tarefas e modelos
+[13:45:24] → treino_orq-coder-com-coder na placa 0 (24 GB livres; 1 rodando)
+[13:46:39] → aval_orq-coder-com-math_humaneval na placa 0 (14 GB livres; 2 rodando)
+[13:47:54] → aval_orq-coder-com-math_mbpp na placa 0 (8 GB livres; 3 rodando)
+[13:55:31] rodando: treino_orq-coder-com-coder, aval_orq-coder-com-math_humaneval, aval_orq-coder-com-math_mbpp · faltam 14 · feitos 0 · placas: 0: 1 GB livres
+[14:02:14] ✓ treino_orq-coder-com-coder (17 min)
+[14:02:14] → treino_orq-coder-com-math-longo na placa 0 (14 GB livres; 3 rodando)
+[14:05:31] rodando: aval_orq-coder-com-math_humaneval, aval_orq-coder-com-math_mbpp, treino_orq-coder-com-math-longo · faltam 13 · feitos 1 · placas: 0: 5 GB livres
+[14:07:53] ✓ aval_orq-coder-com-math_humaneval (21 min)
+[14:07:53] → aval_orq-coder-com-math_gsm8k_0 na placa 0 (8 GB livres; 3 rodando)
+[14:15:33] rodando: aval_orq-coder-com-math_mbpp, treino_orq-coder-com-math-longo, aval_orq-coder-com-math_gsm8k_0 · faltam 12 · feitos 2 · placas: 0: 4 GB livres
+[14:25:40] rodando: aval_orq-coder-com-math_mbpp, treino_orq-coder-com-math-longo, aval_orq-coder-com-math_gsm8k_0 · faltam 12 · feitos 2 · placas: 0: 4 GB livres
+[14:33:46] ✓ aval_orq-coder-com-math_mbpp (46 min)
+[14:35:27] rodando: treino_orq-coder-com-math-longo, aval_orq-coder-com-math_gsm8k_0 · faltam 12 · feitos 3 · placas: 0: 7 GB livres
+[14:40:11] → aval_orq-coder-com-math_gsm8k_1 na placa 0 (9 GB livres; 3 rodando)
+[14:44:08] ✓ treino_orq-coder-com-math-longo (42 min)
+[14:44:08] → aval_orq-coder-com-math_gsm8k_2 na placa 0 (14 GB livres; 3 rodando)
+[14:45:23] → aval_orq-coder-com-coder_humaneval na placa 0 (9 GB livres; 4 rodando)
+[14:55:26] rodando: aval_orq-coder-com-math_gsm8k_0, aval_orq-coder-com-math_gsm8k_1, aval_orq-coder-com-math_gsm8k_2, aval_orq-coder-com-coder_humaneval · faltam 9 · feitos 4 · placas: 0: 3 GB livres
+[14:56:07] ✓ aval_orq-coder-com-coder_humaneval (11 min)
+[14:56:07] → aval_orq-coder-com-coder_mbpp na placa 0 (9 GB livres; 4 rodando)
+[15:05:29] rodando: aval_orq-coder-com-math_gsm8k_0, aval_orq-coder-com-math_gsm8k_1, aval_orq-coder-com-math_gsm8k_2, aval_orq-coder-com-coder_mbpp · faltam 8 · feitos 5 · placas: 0: 3 GB livres
+[15:14:16] ✓ aval_orq-coder-com-math_gsm8k_0 (66 min)
+[15:14:16] → aval_orq-coder-com-coder_gsm8k_0 na placa 0 (9 GB livres; 4 rodando)
+[15:25:39] rodando: aval_orq-coder-com-math_gsm8k_1, aval_orq-coder-com-math_gsm8k_2, aval_orq-coder-com-coder_mbpp, aval_orq-coder-com-coder_gsm8k_0 · faltam 7 · feitos 6 · placas: 0: 5 GB livres
+[15:31:03] ✓ aval_orq-coder-com-coder_mbpp (35 min)
+[15:31:03] → aval_orq-coder-com-coder_gsm8k_1 na placa 0 (11 GB livres; 4 rodando)
+[15:35:40] rodando: aval_orq-coder-com-math_gsm8k_1, aval_orq-coder-com-math_gsm8k_2, aval_orq-coder-com-coder_gsm8k_0, aval_orq-coder-com-coder_gsm8k_1 · faltam 6 · feitos 7 · placas: 0: 5 GB livres
+[15:45:26] rodando: aval_orq-coder-com-math_gsm8k_1, aval_orq-coder-com-math_gsm8k_2, aval_orq-coder-com-coder_gsm8k_0, aval_orq-coder-com-coder_gsm8k_1 · faltam 6 · feitos 7 · placas: 0: 5 GB livres
+[15:45:47] ✓ aval_orq-coder-com-math_gsm8k_1 (66 min)
+[15:45:47] → aval_orq-coder-com-coder_gsm8k_2 na placa 0 (9 GB livres; 4 rodando)
+[15:47:22] ✓ aval_orq-coder-com-coder_gsm8k_0 (33 min)
+[15:47:22] → aval_orq-coder-com-math-longo_humaneval na placa 0 (9 GB livres; 4 rodando)
+[15:49:17] ✓ aval_orq-coder-com-math_gsm8k_2 (65 min)
+[15:55:40] rodando: aval_orq-coder-com-coder_gsm8k_1, aval_orq-coder-com-coder_gsm8k_2, aval_orq-coder-com-math-longo_humaneval · faltam 4 · feitos 10 · placas: 0: 6 GB livres
+[15:58:01] ✓ aval_orq-coder-com-math-longo_humaneval (11 min)
+[15:58:01] → aval_orq-coder-com-math-longo_mbpp na placa 0 (12 GB livres; 3 rodando)
+[16:03:57] ✓ aval_orq-coder-com-coder_gsm8k_1 (33 min)
+[16:03:57] → aval_orq-coder-com-math-longo_gsm8k_0 na placa 0 (12 GB livres; 3 rodando)
+[16:05:33] rodando: aval_orq-coder-com-coder_gsm8k_2, aval_orq-coder-com-math-longo_mbpp, aval_orq-coder-com-math-longo_gsm8k_0 · faltam 2 · feitos 12 · placas: 0: 7 GB livres
+[16:15:35] rodando: aval_orq-coder-com-coder_gsm8k_2, aval_orq-coder-com-math-longo_mbpp, aval_orq-coder-com-math-longo_gsm8k_0 · faltam 2 · feitos 12 · placas: 0: 6 GB livres
+[16:17:15] → aval_orq-coder-com-math-longo_gsm8k_1 na placa 0 (12 GB livres; 4 rodando)
+[16:18:30] ✓ aval_orq-coder-com-coder_gsm8k_2 (33 min)
+[16:25:31] rodando: aval_orq-coder-com-math-longo_mbpp, aval_orq-coder-com-math-longo_gsm8k_0, aval_orq-coder-com-math-longo_gsm8k_1 · faltam 1 · feitos 13 · placas: 0: 6 GB livres
+[16:27:11] ✓ aval_orq-coder-com-math-longo_mbpp (29 min)
+[16:27:11] → aval_orq-coder-com-math-longo_gsm8k_2 na placa 0 (12 GB livres; 3 rodando)
+[16:35:26] rodando: aval_orq-coder-com-math-longo_gsm8k_0, aval_orq-coder-com-math-longo_gsm8k_1, aval_orq-coder-com-math-longo_gsm8k_2 · faltam 0 · feitos 14 · placas: 0: 12 GB livres
+[16:35:26] ✓ aval_orq-coder-com-math-longo_gsm8k_0 (31 min)
+[16:45:26] rodando: aval_orq-coder-com-math-longo_gsm8k_1, aval_orq-coder-com-math-longo_gsm8k_2 · faltam 0 · feitos 15 · placas: 0: 12 GB livres
+[16:49:06] ✓ aval_orq-coder-com-math-longo_gsm8k_1 (32 min)
+[16:55:26] rodando: aval_orq-coder-com-math-longo_gsm8k_2 · faltam 0 · feitos 16 · placas: 0: 18 GB livres
+[16:59:06] ✓ aval_orq-coder-com-math-longo_gsm8k_2 (32 min)
+[16:59:06] todos os trabalhos acabaram em 194 min (17 ok, 0 com falha)
+[16:59:09] relatório: /workspace/costureiro/resultados/bateria/RESULTADO.md

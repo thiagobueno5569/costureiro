@@ -1,0 +1,27 @@
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  93%|█████████▎| 316/338 [00:00<00:00, 3097.94it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 3204.27it/s]
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 4165.47it/s]
+  orquestra (orq-coder-com-math-longo)     gsm8k       10/100   40.0%  (19.2 s por item)
+  orquestra (orq-coder-com-math-longo)     gsm8k       20/100   45.0%  (19.2 s por item)
+  orquestra (orq-coder-com-math-longo)     gsm8k       30/100   46.7%  (19.3 s por item)
+  orquestra (orq-coder-com-math-longo)     gsm8k       40/100   50.0%  (19.4 s por item)
+  orquestra (orq-coder-com-math-longo)     gsm8k       50/100   42.0%  (19.2 s por item)
+  orquestra (orq-coder-com-math-longo)     gsm8k       60/100   36.7%  (19.2 s por item)
+  orquestra (orq-coder-com-math-longo)     gsm8k       70/100   35.7%  (19.1 s por item)
+  orquestra (orq-coder-com-math-longo)     gsm8k       80/100   36.2%  (19.1 s por item)
+  orquestra (orq-coder-com-math-longo)     gsm8k       90/100   38.9%  (18.9 s por item)
+  orquestra (orq-coder-com-math-longo)     gsm8k      100/100   37.0%  (18.9 s por item)
+
+# Avaliação em tarefas de verdade · `orq-coder-com-math-longo`
+
+Partes: `Qwen/Qwen2.5-Coder-1.5B-Instruct` (base) · `Qwen/Qwen2.5-Math-1.5B-Instruct` [0–16]
+
+| modelo | GSM8K (acerto) |
+|---|---|
+| **orquestra (orq-coder-com-math-longo)** | 37.0% (n=100) |
+
+Decodificação gulosa, sem penalidade de repetição, mesmos prompts e paradas para todos. HumanEval/MBPP: o código gerado roda contra os testes oficiais. GSM8K: compara o número final.
+*Roteador simples*: escolhe a IA original inteira pela cara da pergunta (código → a de código). *Oráculo*: acerto se alguma original acertou (o teto de escolher a IA certa). Uma fusão só vale a pena se passar do roteador.
+
+Respostas de cada item: arquivo `.json` ao lado.
+
+salvo em /workspace/costureiro/resultados/bateria/orq-coder-com-math-longo_gsm8k_2.md

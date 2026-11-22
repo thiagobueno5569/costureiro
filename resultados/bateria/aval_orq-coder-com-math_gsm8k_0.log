@@ -1,0 +1,57 @@
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 4434.81it/s]
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 4286.31it/s]
+  orquestra (orq-coder-com-math)           gsm8k       10/100   30.0%  (18.1 s por item)
+  orquestra (orq-coder-com-math)           gsm8k       20/100   20.0%  (18.7 s por item)
+  orquestra (orq-coder-com-math)           gsm8k       30/100   20.0%  (19.1 s por item)
+  orquestra (orq-coder-com-math)           gsm8k       40/100   20.0%  (19.3 s por item)
+  orquestra (orq-coder-com-math)           gsm8k       50/100   28.0%  (19.5 s por item)
+  orquestra (orq-coder-com-math)           gsm8k       60/100   30.0%  (19.4 s por item)
+  orquestra (orq-coder-com-math)           gsm8k       70/100   30.0%  (19.3 s por item)
+  orquestra (orq-coder-com-math)           gsm8k       80/100   31.2%  (19.2 s por item)
+  orquestra (orq-coder-com-math)           gsm8k       90/100   31.1%  (19.1 s por item)
+  orquestra (orq-coder-com-math)           gsm8k      100/100   33.0%  (19.1 s por item)
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  12%|█▏        | 40/338 [00:00<00:00, 396.95it/s]Loading weights:  24%|██▎       | 80/338 [00:00<00:00, 398.36it/s]Loading weights:  37%|███▋      | 124/338 [00:00<00:00, 416.77it/s]Loading weights:  50%|█████     | 169/338 [00:00<00:00, 423.14it/s]Loading weights:  63%|██████▎   | 212/338 [00:00<00:00, 419.82it/s]Loading weights:  75%|███████▌  | 255/338 [00:00<00:00, 419.01it/s]Loading weights:  88%|████████▊ | 297/338 [00:00<00:00, 414.65it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 414.05it/s]
+  Qwen/Qwen2.5-Coder-1.5B-Instruct         gsm8k       10/100   40.0%  (10.2 s por item)
+  Qwen/Qwen2.5-Coder-1.5B-Instruct         gsm8k       20/100   30.0%  (10.3 s por item)
+  Qwen/Qwen2.5-Coder-1.5B-Instruct         gsm8k       30/100   33.3%  (10.2 s por item)
+  Qwen/Qwen2.5-Coder-1.5B-Instruct         gsm8k       40/100   40.0%  (10.3 s por item)
+  Qwen/Qwen2.5-Coder-1.5B-Instruct         gsm8k       50/100   42.0%  (10.3 s por item)
+  Qwen/Qwen2.5-Coder-1.5B-Instruct         gsm8k       60/100   45.0%  (10.3 s por item)
+  Qwen/Qwen2.5-Coder-1.5B-Instruct         gsm8k       70/100   44.3%  (10.3 s por item)
+  Qwen/Qwen2.5-Coder-1.5B-Instruct         gsm8k       80/100   42.5%  (10.3 s por item)
+  Qwen/Qwen2.5-Coder-1.5B-Instruct         gsm8k       90/100   43.3%  (10.2 s por item)
+  Qwen/Qwen2.5-Coder-1.5B-Instruct         gsm8k      100/100   41.0%  (10.2 s por item)
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:00<00:34,  9.91it/s]Loading weights:  29%|██▉       | 99/338 [00:00<00:00, 421.98it/s]Loading weights:  42%|████▏     | 143/338 [00:00<00:00, 424.01it/s]Loading weights:  54%|█████▍    | 184/338 [00:00<00:00, 418.22it/s]Loading weights:  67%|██████▋   | 227/338 [00:00<00:00, 416.87it/s]Loading weights:  80%|███████▉  | 270/338 [00:00<00:00, 420.70it/s]Loading weights:  93%|█████████▎| 313/338 [00:00<00:00, 423.44it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 427.25it/s]
+  Qwen/Qwen2.5-Math-1.5B-Instruct          gsm8k       10/100   40.0%  (10.8 s por item)
+  Qwen/Qwen2.5-Math-1.5B-Instruct          gsm8k       20/100   40.0%  (10.6 s por item)
+  Qwen/Qwen2.5-Math-1.5B-Instruct          gsm8k       30/100   40.0%  (10.4 s por item)
+  Qwen/Qwen2.5-Math-1.5B-Instruct          gsm8k       40/100   42.5%  (10.2 s por item)
+  Qwen/Qwen2.5-Math-1.5B-Instruct          gsm8k       50/100   44.0%  (10.3 s por item)
+  Qwen/Qwen2.5-Math-1.5B-Instruct          gsm8k       60/100   43.3%  (10.4 s por item)
+  Qwen/Qwen2.5-Math-1.5B-Instruct          gsm8k       70/100   42.9%  (10.4 s por item)
+  Qwen/Qwen2.5-Math-1.5B-Instruct          gsm8k       80/100   41.2%  (10.3 s por item)
+  Qwen/Qwen2.5-Math-1.5B-Instruct          gsm8k       90/100   44.4%  (10.1 s por item)
+  Qwen/Qwen2.5-Math-1.5B-Instruct          gsm8k      100/100   44.0%  (10.1 s por item)
+
+# Avaliação em tarefas de verdade · `orq-coder-com-math`
+
+Partes: `Qwen/Qwen2.5-Coder-1.5B-Instruct` (base) · `Qwen/Qwen2.5-Math-1.5B-Instruct` [0–16]
+
+| modelo | GSM8K (acerto) |
+|---|---|
+| **orquestra (orq-coder-com-math)** | 33.0% (n=100) |
+| `Qwen/Qwen2.5-Coder-1.5B-Instruct` | 41.0% (n=100) |
+| `Qwen/Qwen2.5-Math-1.5B-Instruct` | 44.0% (n=100) |
+| *roteador simples (IA inteira por pergunta)* | 44.0% (n=100) |
+| *oráculo (alguma original acerta)* | 56.0% (n=100) |
+
+**Teste pareado (McNemar exato)**: em quantos itens só a IA nova acertou × só a outra acertou, e a chance de a diferença ser sorte (p < 0,05 = provavelmente real):
+
+- GSM8K (acerto) · orquestra (orq-coder-com-math): contra Qwen2.5-Coder-1.5B-Instruct: +11/−19, p = 0.200; contra Qwen2.5-Math-1.5B-Instruct: +15/−26, p = 0.117; contra roteador: +15/−26, p = 0.117
+
+Decodificação gulosa, sem penalidade de repetição, mesmos prompts e paradas para todos. HumanEval/MBPP: o código gerado roda contra os testes oficiais. GSM8K: compara o número final.
+*Roteador simples*: escolhe a IA original inteira pela cara da pergunta (código → a de código). *Oráculo*: acerto se alguma original acertou (o teto de escolher a IA certa). Uma fusão só vale a pena se passar do roteador.
+
+Respostas de cada item: arquivo `.json` ao lado.
+
+salvo em /workspace/costureiro/resultados/bateria/orq-coder-com-math_gsm8k_0.md

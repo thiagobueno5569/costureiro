@@ -1,0 +1,48 @@
+[  0.0 min] assunto 'programação': 2632 trechos de treino, 60 de teste
+[  0.0 min] assunto 'matemática': 3240 trechos de treino, 60 de teste
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 4243.25it/s]
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 4473.61it/s]
+[  0.2 min]   Qwen2.5-Math-1.5B-Instruct até a camada 16 → base na camada 15: rotação explica 91%
+[  0.2 min]   Qwen2.5-Math-1.5B-Instruct até a camada 16 → base na camada 18: rotação explica 91%
+[  0.2 min]   Qwen2.5-Math-1.5B-Instruct até a camada 16 → base na camada 21: rotação explica 91%
+[  0.2 min]   Qwen2.5-Math-1.5B-Instruct até a camada 16 → base na camada 24: rotação explica 90%
+[  0.2 min]   Qwen2.5-Math-1.5B-Instruct até a camada 19 → base na camada 15: rotação explica 89%
+[  0.2 min]   Qwen2.5-Math-1.5B-Instruct até a camada 19 → base na camada 18: rotação explica 90%
+[  0.2 min]   Qwen2.5-Math-1.5B-Instruct até a camada 19 → base na camada 21: rotação explica 90%
+[  0.2 min]   Qwen2.5-Math-1.5B-Instruct até a camada 19 → base na camada 24: rotação explica 90%
+[  0.3 min]   Qwen2.5-Math-1.5B-Instruct até a camada 21 → base na camada 15: rotação explica 87%
+[  0.3 min]   Qwen2.5-Math-1.5B-Instruct até a camada 21 → base na camada 18: rotação explica 88%
+[  0.3 min]   Qwen2.5-Math-1.5B-Instruct até a camada 21 → base na camada 21: rotação explica 89%
+[  0.3 min]   Qwen2.5-Math-1.5B-Instruct até a camada 21 → base na camada 24: rotação explica 89%
+[  0.3 min]   Qwen2.5-Math-1.5B-Instruct até a camada 24 → base na camada 15: rotação explica 80%
+[  0.3 min]   Qwen2.5-Math-1.5B-Instruct até a camada 24 → base na camada 18: rotação explica 80%
+[  0.3 min]   Qwen2.5-Math-1.5B-Instruct até a camada 24 → base na camada 21: rotação explica 82%
+[  0.3 min]   Qwen2.5-Math-1.5B-Instruct até a camada 24 → base na camada 24: rotação explica 84%
+[  0.3 min]   escolhido: Qwen2.5-Math-1.5B-Instruct lê até a camada 16; a base recebe na camada 21
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 4130.26it/s]
+[  0.5 min]   ponte Qwen2.5-Math-1.5B-Instruct → base: rotação explica 92% (R²)
+[  0.5 min] base: Qwen/Qwen2.5-Coder-1.5B-Instruct (recebe na camada 21)
+[  0.5 min] solista: Qwen/Qwen2.5-Math-1.5B-Instruct (lê até a camada 16)
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 4052.71it/s]
+[ 10.4 min] 'programação' antes do treino: orquestra 0.491 bpc · base 0.491 · Qwen2.5-Math-1.5B-Instruct 1.229 · melhor de cada palavra 0.454
+[ 10.5 min] 'matemática' antes do treino: orquestra 0.525 bpc · base 0.525 · Qwen2.5-Math-1.5B-Instruct 0.676 · melhor de cada palavra 0.421
+[ 21.2 min] época 1: teste 0.458 bpc · vez de cada um: base 90%, Qwen2.5-Math-1.5B-Instruct 10%  ← melhor
+[ 31.4 min] época 2: teste 0.452 bpc · vez de cada um: base 85%, Qwen2.5-Math-1.5B-Instruct 15%  ← melhor
+[ 41.5 min] época 3: teste 0.451 bpc · vez de cada um: base 83%, Qwen2.5-Math-1.5B-Instruct 17%  ← melhor
+[ 41.5 min] 'programação' depois: orquestra 0.460 bpc (antes 0.491; melhor de cada palavra 0.454) · vez: base 91%, Qwen2.5-Math-1.5B-Instruct 9%
+[ 41.6 min] 'matemática' depois: orquestra 0.434 bpc (antes 0.525; melhor de cada palavra 0.421) · vez: base 75%, Qwen2.5-Math-1.5B-Instruct 25%
+[ 41.6 min] salva em /workspace/costureiro/ias_novas/orq-coder-com-math-longo
+
+# orq-coder-com-math-longo (orquestra)
+
+Base: `Qwen/Qwen2.5-Coder-1.5B-Instruct` (recebe na camada 21)
+Solista: `Qwen/Qwen2.5-Math-1.5B-Instruct` (lê até a camada 16)
+
+Bits por caractere no texto de teste (menor = melhor):
+
+| assunto | só base | só Qwen2.5-Math-1.5B-Instruct | melhor de cada palavra | orquestra antes | **orquestra** | vez de cada um |
+|---|---|---|---|---|---|---|
+| programação | 0.491 | 1.229 | 0.454 | 0.491 | **0.460** | base 91%, Qwen2.5-Math-1.5B-Instruct 9% |
+| matemática | 0.525 | 0.676 | 0.421 | 0.525 | **0.434** | base 75%, Qwen2.5-Math-1.5B-Instruct 25% |
+
+Tempo: 42 min. Criada em 2026-11-22 14:43.

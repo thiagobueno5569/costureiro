@@ -1,0 +1,34 @@
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 3402.20it/s]
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 3651.29it/s]
+  orquestra (orq-coder-com-math-longo)     humaneval   10/164   80.0%  (3.0 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval   20/164   80.0%  (2.5 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval   30/164   80.0%  (2.4 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval   40/164   75.0%  (3.3 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval   50/164   78.0%  (3.2 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval   60/164   78.3%  (3.1 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval   70/164   77.1%  (3.0 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval   80/164   75.0%  (3.3 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval   90/164   71.1%  (3.4 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval  100/164   68.0%  (3.5 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval  110/164   63.6%  (3.7 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval  120/164   61.7%  (3.6 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval  130/164   59.2%  (3.5 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval  140/164   57.1%  (3.6 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval  150/164   56.0%  (3.7 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval  160/164   55.6%  (3.7 s por item)
+  orquestra (orq-coder-com-math-longo)     humaneval  164/164   54.9%  (3.7 s por item)
+
+# Avaliação em tarefas de verdade · `orq-coder-com-math-longo`
+
+Partes: `Qwen/Qwen2.5-Coder-1.5B-Instruct` (base) · `Qwen/Qwen2.5-Math-1.5B-Instruct` [0–16]
+
+| modelo | HumanEval (pass@1) |
+|---|---|
+| **orquestra (orq-coder-com-math-longo)** | 54.9% (n=164) |
+
+Decodificação gulosa, sem penalidade de repetição, mesmos prompts e paradas para todos. HumanEval/MBPP: o código gerado roda contra os testes oficiais. GSM8K: compara o número final.
+*Roteador simples*: escolhe a IA original inteira pela cara da pergunta (código → a de código). *Oráculo*: acerto se alguma original acertou (o teto de escolher a IA certa). Uma fusão só vale a pena se passar do roteador.
+
+Respostas de cada item: arquivo `.json` ao lado.
+
+salvo em /workspace/costureiro/resultados/bateria/orq-coder-com-math-longo_humaneval.md
