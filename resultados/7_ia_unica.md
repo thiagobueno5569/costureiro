@@ -43,7 +43,21 @@ Atenção do Coder; em cada camada, a FFN do Coder e a do Math viram dois especi
 iniciado pelas médias de cada assunto e depois treinado (só ele; 800 passos em textos de treino do MBPP, do GSM8K e
 código real). Perda no teste do roteador: **5.81 → 1.06**. Montagem e treino: 26 min. `.gguf` q8_0: 3.1 GB.
 
-Avaliação em andamento.
+| modelo | HumanEval (pass@1) |
+|---|---|
+| `Qwen/Qwen2.5-Coder-1.5B-Instruct` | 46.3% (n=164) |
+| `Qwen/Qwen2.5-Math-1.5B-Instruct` | 32.9% (n=164) |
+| **IA única (MoE Coder+Math)** | **52.4%** (n=164) |
+| *roteador simples (IA inteira por pergunta)* | 46.3% (n=164) |
+| *oráculo (alguma original acerta)* | 56.1% (n=164) |
+
+Teste pareado (McNemar exato), MoE contra o Coder: +22/−12 (22 problemas que só o MoE acertou, 12 que só o Coder
+acertou), **p = 0.121**: provável ganho, mas ainda pode ser sorte. Contra o Math: +43/−11, p < 0.001.
+
+Cuidado ao ler: o roteador foi treinado com textos de treino do MBPP e do GSM8K (nunca o teste). Só ele (2×1536
+números por camada) foi treinado, mas parte do ganho pode vir desse ajuste, como aconteceu com a ponte da orquestra.
+
+MBPP e GSM8K em andamento.
 
 ## Destilação conferida
 
