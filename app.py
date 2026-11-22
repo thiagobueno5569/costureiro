@@ -21,12 +21,15 @@ from nucleo import Especialista, IACerebro, IACosturada, Parte, Receita, Receita
 RAIZ = Path(__file__).resolve().parent
 SAIDAS = RAIZ / "ias_novas"
 TEXTOS = RAIZ / "textos"
+FUSOES = RAIZ / "fusoes"
 SAIDAS.mkdir(exist_ok=True)
 
 SUGESTOES = [
     "Qwen/Qwen2.5-Coder-0.5B-Instruct", "Qwen/Qwen2.5-Coder-1.5B-Instruct", "Qwen/Qwen2.5-Math-1.5B-Instruct",
     "Qwen/Qwen2.5-0.5B-Instruct", "Qwen/Qwen2.5-1.5B-Instruct", "Qwen/Qwen3-0.6B", "Qwen/Qwen3-1.7B",
     "HuggingFaceTB/SmolLM2-360M-Instruct", "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+    "Qwen/Qwen2.5-3B-Instruct", "Qwen/Qwen2.5-Coder-3B-Instruct", "Qwen/Qwen2.5-7B-Instruct",
+    "Qwen/Qwen2.5-Coder-7B-Instruct", "Qwen/Qwen2.5-Math-7B-Instruct",
 ]
 # paleta categórica (validada para fundo escuro: luminosidade, croma, daltonismo e contraste)
 COR = ["#3987e5", "#d95926", "#199e70"]
@@ -613,6 +616,70 @@ def exportar_ui(nome_ia, modo, tipo, epocas_d):
            "no LM Studio, escreva no formato *Pergunta: … Resposta:* e use temperatura baixa.")
 
 
+def _pecas_ui(vals):
+    import fusao
+    pecas = []
+    for i in range(MAX_PARTES):
+        m, a, b = vals[3 * i:3 * i + 3]
+        if m and str(m).strip():
+            pecas.append(fusao.Peca(str(m).strip(), int(a), int(b)))
+    return pecas
+
+
+def checar_fusao_ui(*vals):
+    import fusao
+    pecas = _pecas_ui(vals)
+    if len(pecas) < 2:
+        return "Escolha pelo menos 2 modelos."
+    linhas = []
+    for p in pecas:
+        try:
+            n = nucleo.info_modelo(p.modelo)["camadas"]
+            linhas.append(f"- `{p.modelo}`: {n} camadas (usando {p.inicio}–{p.fim})")
+        except Exception as e:
+            linhas.append(f"- `{p.modelo}`: não consegui ler ({e})")
+    pode, motivo = fusao.checar([p.modelo for p in pecas])
+    cab = (f"✅ **Dá para fundir:** {motivo}." if pode else
+           f"❌ **Fusão exata não dá:** {motivo}. Para esse par, costure na aba ③ e use a **destilação** acima.")
+    return cab + "\n\n" + "\n".join(linhas)
+
+
+def fusao_direta_ui(nome_f, *vals):
+    import time as _t
+    import fusao
+    *campos, textos_f, tipo_f, lms_f = vals
+    pecas = _pecas_ui(campos)
+    if len(pecas) < 2:
+        yield "Escolha pelo menos 2 modelos.", "", ""
+        return
+    caminhos = [c.strip().strip('"') for c in (textos_f or "").split(";") if c.strip()]
+    nome_f = (nome_f or "fusao").strip()
+    pasta = FUSOES / "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in nome_f)
+    q, log, inicio = queue.Queue(), [], _t.time()
+    prog = {"fase": "exportando", "fracao": 0.01, "texto": "lendo os textos de calibração"}
+    yield "", barra_progresso(prog, inicio), ""
+
+    def tarefa():
+        nucleo.liberar_cache()
+        textos = fusao.textos_de(caminhos)
+        return fusao.fundir_completo(pecas, pasta, textos, nome_f, log=lambda m: q.put(("log", m)),
+                                     progresso=lambda f, t: q.put(("prog", (f, t))),
+                                     gguf=None if tipo_f == "não gerar" else tipo_f, lmstudio=bool(lms_f))
+    out = _em_fundo(tarefa, q)
+    while (item := q.get()) is not None:
+        tipo_i, c = item
+        if tipo_i == "log":
+            log.append(c)
+        else:
+            prog = {"fase": "exportando", "fracao": c[0], "texto": c[1]}
+        yield "\n".join(log[-60:]), barra_progresso(prog, inicio), ""
+    if "erro" in out:
+        yield "\n".join(log + ["", out["erro"]]), barra_progresso(prog, inicio), "❌ Deu erro: veja os detalhes do andamento."
+        return
+    yield ("\n".join(log[-60:]), barra_progresso({"fase": "pronto", "fracao": 1, "texto": nome_f}, inicio),
+           fusao.relatorio(out["r"]) + f"\n\nPasta: `{pasta}` (modelo do Hugging Face em `hf/`, com ficha README.md)")
+
+
 # ----------------------------------------------------------------------------- interface
 
 TEMA = gr.themes.Base(primary_hue="blue", neutral_hue="stone").set(
@@ -785,6 +852,36 @@ with gr.Blocks(title="Costureiro") as app:
                 e_log = gr.Textbox(lines=10, max_lines=20, show_label=False, autoscroll=True)
             e_res = gr.Markdown()
 
+            gr.HTML('<div class="passo" style="margin-top:22px">fusão direta (sem treinar)</div>'
+                    '<div class="cartao" style="margin-bottom:10px">Junte camadas de <b>2 ou 3 modelos da mesma arquitetura e '
+                    'do mesmo tamanho</b> (ex.: um Instruct e um Coder do mesmo modelo-base) direto num modelo comum. '
+                    'Os pesos são lidos e gravados camada por camada e cada modelo é carregado sozinho, então funciona '
+                    'com modelos de qualquer tamanho: em placa de vídeo, em várias placas ou só na memória RAM. '
+                    'Serve para Llama, Mistral, Qwen2/2.5, Qwen3 e os MoE (Mixtral, Qwen-MoE).</div>')
+            f_campos = []
+            padroes_f = [("Qwen/Qwen2.5-3B-Instruct", 0, 19), ("Qwen/Qwen2.5-Coder-3B-Instruct", 20, 35), ("", 0, 0)]
+            for i, (m_, a_, b_) in enumerate(padroes_f):
+                with gr.Row():
+                    f_campos += [gr.Dropdown(SUGESTOES, value=m_ or None, allow_custom_value=True,
+                                             label=f"modelo {i + 1}" + (" (opcional)" if i == 2 else ""), scale=4),
+                                 gr.Number(label="da camada", value=a_, precision=0, scale=1),
+                                 gr.Number(label="até a camada", value=b_, precision=0, scale=1)]
+            with gr.Row():
+                f_nome = gr.Textbox(label="Nome do modelo novo", value="instruct-coder-3b", scale=2)
+                f_textos = gr.Textbox(label="Texto de calibração (arquivos ou pastas, separe com ;)",
+                                      value=str(TEXTOS), scale=4)
+            with gr.Row():
+                f_tipo = gr.Dropdown(["q8_0", "f16", "bf16", "não gerar"], value="q8_0", label="Formato do .gguf")
+                f_lms = gr.Checkbox(value=True, label="Copiar para o LM Studio")
+            with gr.Row():
+                f_checar = gr.Button("🔎 Verificar se combinam", scale=2)
+                f_btn = gr.Button("🧬 Fundir", variant="primary", size="lg", scale=4)
+            f_info = gr.Markdown()
+            f_barra = gr.HTML()
+            with gr.Accordion("Detalhes da fusão", open=False):
+                f_log = gr.Textbox(lines=10, max_lines=20, show_label=False, autoscroll=True)
+            f_res = gr.Markdown()
+
     c_btn.click(criar_cerebro_ui, [c_nome, c_base, c_camada, *c_esp, *assuntos, c_epocas, c_esparsidade],
                 [c_log, c_barra, c_res, c_g1, c_g2, c_escolha])
     c_parar.click(lambda: _parar.set())
@@ -821,6 +918,8 @@ with gr.Blocks(title="Costureiro") as app:
     e_escolha.input(ver_exportacao, e_escolha, e_info)
     e_btn.click(exportar_ui, [e_escolha, e_modo, e_tipo, e_epocas], [e_log, e_barra, e_res])
     e_parar.click(lambda: _parar.set())
+    f_checar.click(checar_fusao_ui, f_campos, f_info)
+    f_btn.click(fusao_direta_ui, [f_nome, *f_campos, f_textos, f_tipo, f_lms], [f_log, f_barra, f_res])
     app.load(lambda: gr.update(choices=listar_ias()), None, e_escolha)
 
 if __name__ == "__main__":

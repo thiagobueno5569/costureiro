@@ -150,6 +150,25 @@ A `.gguf` describes one stack of identical layers with one tokenizer, and the st
 
 Both routes end with the official llama.cpp converter (`convert_hf_to_gguf.py`, downloaded on first use) → `q8_0` by default.
 
+### 🧬 Direct fusion (no training, any size)
+
+For models of the same architecture and size — typically fine-tunes of the same base, like an Instruct and a Coder — you don't need to train anything. `fusao.py` finds the rotation of each junction from a little calibration text and writes a plain model:
+
+```bash
+python fusao.py --peca Qwen/Qwen2.5-3B-Instruct:0-19 --peca Qwen/Qwen2.5-Coder-3B-Instruct:20-35 \
+    --texto my_texts/ --saida merges/instruct-coder --gguf q8_0
+python fusao.py --peca A:0-10 --peca B:11-20 --peca C:21-31 --saida merges/abc     # 3 or more pieces
+python fusao.py --peca A:0-15 --peca B:16-31 --saida x --so-checar                  # only check compatibility
+```
+
+- **Scales to any size:** weights are streamed tensor by tensor from the `.safetensors` files (memory ≈ one layer), and each model is loaded alone to read its hidden states, on one GPU, several GPUs (`device_map="auto"`), or CPU only (`--dispositivo cpu`).
+- **Architectures:** Llama, Mistral, Qwen2/2.5, Qwen3, and MoE (Mixtral, Qwen2-MoE, Qwen3-MoE: routers and every expert are rotated too).
+- **Checks before fusing:** same architecture, size, RoPE and tokenizer. If they differ, it says exactly what (e.g. Qwen2.5-Math uses RoPE θ = 10,000 and the others 1,000,000) and you go through stitching + distillation instead.
+- **Output:** a Hugging Face folder (sharded safetensors), a model card that lists every piece and **the licenses the merge inherits**, bits-per-character of the merge vs. each original, and the `.gguf`.
+- **Tested:** `teste_fusao.py` writes a model in random rotated bases and fuses pieces back (2 and 3 pieces, dense and MoE). The result matches the original model.
+
+The same is in the app, tab ⑤ → *Direct fusion*.
+
 ---
 
 ## ⚖️ Limitations (honestly)

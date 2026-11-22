@@ -26,7 +26,6 @@ from __future__ import annotations
 import gc
 import io
 import json
-import math
 import os
 import random
 import re
@@ -37,13 +36,12 @@ import time
 import urllib.request
 import zipfile
 from pathlib import Path
-from typing import Callable
 
 import torch
 import torch.nn as nn
 
 import nucleo
-from nucleo import DEV, IACosturada, Receita, camadas, dados_por_assunto, _bpc_textos
+from nucleo import DEV, IACosturada, Receita, dados_por_assunto, _bpc_textos
 
 AQUI = Path(__file__).parent
 CONVERSOR = AQUI / "conversor_gguf"
@@ -61,190 +59,20 @@ def _nome_arquivo(s: str) -> str:
 # ============================================================================ 1. fusão exata
 
 def checar_fusao(receita: Receita) -> tuple[bool, str]:
-    """A fusão exata só funciona se as partes 'falam a mesma língua' por fora: mesmo tokenizador,
-    mesma dimensão e mesma RoPE. Devolve (pode, motivo)."""
-    from transformers import AutoConfig, AutoTokenizer
-    cfgs = [AutoConfig.from_pretrained(p.modelo) for p in receita.partes]
-    c0 = cfgs[0]
-    if c0.model_type not in TIPOS_SUPORTADOS:
-        return False, f"arquitetura {c0.model_type} ainda não suportada na fusão exata"
-
-    def rope(c):
-        return (getattr(c, "rope_theta", None), json.dumps(getattr(c, "rope_scaling", None), sort_keys=True, default=str),
-                json.dumps(getattr(c, "rope_parameters", None), sort_keys=True, default=str))
-
-    campos = ("hidden_size", "num_attention_heads", "num_key_value_heads", "intermediate_size", "hidden_act")
-    for p, c in zip(receita.partes[1:], cfgs[1:]):
-        if c.model_type != c0.model_type:
-            return False, f"famílias diferentes ({c0.model_type} × {c.model_type})"
-        for k in campos:
-            if getattr(c, k, None) != getattr(c0, k, None):
-                return False, f"tamanhos diferentes: {k} = {getattr(c0, k, None)} × {getattr(c, k, None)} ({p.modelo})"
-        if getattr(c, "head_dim", None) != getattr(c0, "head_dim", None):
-            return False, "tamanho das cabeças de atenção diferente"
-        if rope(c) != rope(c0):
-            return False, (f"a posição das palavras (RoPE) é calculada diferente em {p.modelo} "
-                           f"(θ = {getattr(c0, 'rope_theta', '?')} × {getattr(c, 'rope_theta', '?')})")
-        if getattr(c, "attention_bias", None) != getattr(c0, "attention_bias", None):
-            return False, "um modelo tem viés na atenção e o outro não"
-    toks = [AutoTokenizer.from_pretrained(p.modelo) for p in receita.partes]
-    v0 = toks[0].get_vocab()
-    for p, t in zip(receita.partes[1:], toks[1:]):
-        if t.get_vocab() != v0:
-            return False, f"tokenizadores diferentes ({receita.partes[0].modelo} × {p.modelo})"
-    return True, "mesma família, mesmo tamanho e mesmo tokenizador"
+    """A fusão exata só funciona se as partes têm a mesma arquitetura, dimensão, RoPE e tokenizador."""
+    import fusao
+    return fusao.checar([p.modelo for p in receita.partes])
 
 
-def procrustes_sem_media(x: torch.Tensor, y: torch.Tensor):
-    """Melhor y ≈ s·x·Q com Q ortogonal (sem centralizar: a média não cabe nos pesos)."""
-    x, y = x.double(), y.double()
-    U, S, Vh = torch.linalg.svd(x.T @ y, full_matrices=False)
-    Q = U @ Vh
-    s = S.sum() / x.pow(2).sum()
-    yc = y - y.mean(0)
-    r2 = 1 - (s * x @ Q - y).pow(2).sum() / yc.pow(2).sum()
-    return Q.float(), float(s), float(r2)
-
-
-@torch.no_grad()
-def _estados(m, ids_lista, camada_entrada=None, saida_de=None, entrada=None, inicio=0):
-    """Junta vetores de várias frases (pula a 1ª posição, que costuma ter ativações gigantes)."""
-    out = []
-    for k, ids in enumerate(ids_lista):
-        if saida_de is not None:
-            h = nucleo.rodar_parte(m, ids, inicio, saida_de, None if entrada is None else entrada[k])
-        else:
-            h = nucleo.estado_nativo(m, ids, camada_entrada)
-        out.append(h)
-    return out
-
-
-def _girar_camada(sd: dict, prefixo: str, Q: torch.Tensor, s: float) -> dict:
-    """Reescreve uma camada para trabalhar na base nova (ver explicação no topo do arquivo)."""
-    novo = {}
-    g1 = sd[prefixo + "input_layernorm.weight"].float()
-    g2 = sd[prefixo + "post_attention_layernorm.weight"].float()
-    Qt = Q.T.contiguous()
-    for k, v in sd.items():
-        if not k.startswith(prefixo):
-            continue
-        nome = k[len(prefixo):]
-        v = v.float()
-        if nome in ("input_layernorm.weight", "post_attention_layernorm.weight"):
-            novo[k] = torch.ones_like(v)
-        elif any(nome == f"self_attn.{n}.weight" for n in ("q_proj", "k_proj", "v_proj")):
-            novo[k] = (v * g1[None, :]) @ Qt
-        elif any(nome == f"mlp.{n}.weight" for n in ("gate_proj", "up_proj")):
-            novo[k] = (v * g2[None, :]) @ Qt
-        elif nome in ("self_attn.o_proj.weight", "mlp.down_proj.weight"):
-            novo[k] = Q @ v / s
-        elif nome in ("self_attn.o_proj.bias", "mlp.down_proj.bias"):
-            novo[k] = Q @ v / s
-        elif nome.startswith(("self_attn.q_proj.bias", "self_attn.k_proj.bias", "self_attn.v_proj.bias",
-                              "self_attn.q_norm.", "self_attn.k_norm.")):
-            novo[k] = v
-        else:
-            raise ValueError(f"peso inesperado na camada: {nome} (arquitetura diferente do esperado)")
-    return novo
-
-
-def _sd_cpu(nome: str) -> dict:
-    from transformers import AutoModelForCausalLM
-    m = AutoModelForCausalLM.from_pretrained(nome, dtype=torch.float32, low_cpu_mem_usage=True)
-    sd = {k: v.detach().clone() for k, v in m.state_dict().items()}
-    del m
-    gc.collect()
-    return sd
-
-
-@torch.no_grad()
 def fundir(receita: Receita, pasta_hf: Path, textos_ajuste: list[str], log=print, progresso=lambda f, t: None) -> dict:
-    """Constrói um modelo normal (pasta do Hugging Face) com as camadas de cada parte, já girado."""
-    from transformers import AutoConfig, AutoTokenizer
-    partes = receita.partes
-    tok = AutoTokenizer.from_pretrained(partes[0].modelo)
-    ids_lista = []
-    for t in textos_ajuste:
-        ids = tok(t, add_special_tokens=False)["input_ids"][:receita.max_tok]
-        if len(ids) > 8:
-            ids_lista.append(ids)
-    if len(ids_lista) < 4:
-        raise ValueError("texto de ajuste curto demais para achar a rotação")
-
-    # --- 1) acha a rotação de cada junção, em cadeia, sempre na base da 1ª parte
-    progresso(0.05, "achando a rotação de cada junção")
-    _, m0 = nucleo.carregar_modelo(partes[0].modelo)
-    x = _estados(m0, ids_lista, saida_de=partes[0].fim)          # base da parte 1, saída da última camada usada
-    giros, r2s = [], []
-    for i in range(1, len(partes)):
-        p = partes[i]
-        _, mi = nucleo.carregar_modelo(p.modelo)
-        y = _estados(mi, ids_lista, camada_entrada=p.inicio)     # o que a parte i espera receber
-        Q, s, r2 = procrustes_sem_media(torch.cat([h[1:] for h in x]).cpu(), torch.cat([h[1:] for h in y]).cpu())
-        giros.append((Q, s)); r2s.append(r2)
-        parecida = float(torch.trace(Q)) / Q.shape[0]
-        log(f"  junção {i}: rotação explica {100 * r2:.0f}% · escala {s:.3f} · parecença com 'nenhuma rotação' {100 * parecida:.0f}%")
-        if i < len(partes) - 1:                                   # leva o estado até a próxima junção
-            Qd = Q.to(DEV)
-            ent = [s * (h @ Qd) for h in x]
-            y_fim = _estados(mi, ids_lista, saida_de=p.fim, entrada=ent, inicio=p.inicio)
-            x = [(h @ Qd.T) / s for h in y_fim]
+    """Fusão exata a partir de uma receita (o trabalho pesado está em fusao.py)."""
+    import fusao
     nucleo.liberar_cache()
-
-    # --- 2) monta os pesos (na CPU, um modelo de cada vez)
-    cfg = AutoConfig.from_pretrained(partes[0].modelo)
-    total = sum(p.fim - p.inicio + 1 for p in partes)
-    tipos_camada = []
-    sd_novo, k_novo = {}, 0
-    for i, p in enumerate(partes):
-        progresso(0.15 + 0.6 * i / len(partes), f"reescrevendo as camadas de {p.modelo}")
-        log(f"  copiando camadas {p.inicio}..{p.fim} de {p.modelo}" + (" (giradas para a base da 1ª parte)" if i else ""))
-        sd = _sd_cpu(p.modelo)
-        ci = AutoConfig.from_pretrained(p.modelo)
-        lt = getattr(ci, "layer_types", None)
-        if i == 0:
-            sd_novo["model.embed_tokens.weight"] = sd["model.embed_tokens.weight"]
-        for l in range(p.inicio, p.fim + 1):
-            pre_v, pre_n = f"model.layers.{l}.", f"model.layers.{k_novo}."
-            if i == 0:
-                camada = {k: v for k, v in sd.items() if k.startswith(pre_v)}
-            else:
-                camada = _girar_camada(sd, pre_v, *giros[i - 1])
-            for k, v in camada.items():
-                sd_novo[pre_n + k[len(pre_v):]] = v
-            if lt:
-                tipos_camada.append(lt[l])
-            k_novo += 1
-        if i == len(partes) - 1:
-            Q, s = giros[-1]
-            gf = sd["model.norm.weight"].float()
-            cab = sd.get("lm_head.weight", sd["model.embed_tokens.weight"]).float()
-            sd_novo["model.norm.weight"] = torch.ones_like(gf)
-            sd_novo["lm_head.weight"] = (cab * gf[None, :]) @ Q.T
-        del sd
-        gc.collect()
-
-    cfg.num_hidden_layers = total
-    cfg.tie_word_embeddings = False
-    if tipos_camada and hasattr(cfg, "layer_types"):
-        cfg.layer_types = tipos_camada
-    if hasattr(cfg, "max_window_layers"):
-        cfg.max_window_layers = total
-
-    # --- 3) salva no formato do Hugging Face
-    progresso(0.8, "salvando o modelo novo")
-    from transformers import AutoModelForCausalLM
-    with torch.device("meta"):
-        modelo = AutoModelForCausalLM.from_config(cfg)
-    modelo.load_state_dict(sd_novo, assign=True, strict=True)
-    modelo = modelo.to(torch.bfloat16)
-    pasta_hf = Path(pasta_hf)
-    pasta_hf.mkdir(parents=True, exist_ok=True)
-    modelo.save_pretrained(pasta_hf, safe_serialization=True)
-    tok.save_pretrained(pasta_hf)
-    del modelo, sd_novo
-    gc.collect()
-    return {"modo": "fusão exata", "r2_juncoes": r2s, "camadas": total}
+    res = fusao.fundir([fusao.Peca(p.modelo, p.inicio, p.fim) for p in receita.partes], pasta_hf, textos_ajuste,
+                       log=log, progresso=progresso, max_tok=max(receita.max_tok, 128))
+    res.pop("_ids_medir", None)
+    res["r2_juncoes"] = [j["r2"] for j in res["juncoes"]]
+    return res
 
 
 # ============================================================================ 2. destilação

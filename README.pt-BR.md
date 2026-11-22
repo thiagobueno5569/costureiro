@@ -112,6 +112,24 @@ Um `.gguf` descreve uma pilha de camadas iguais com um tokenizador só, e a cost
 
 Os dois terminam no conversor oficial do llama.cpp (`convert_hf_to_gguf.py`, baixado no primeiro uso), em `q8_0` por padrão.
 
+### 🧬 Fusão direta (sem treinar, qualquer tamanho)
+
+Para modelos da mesma arquitetura e do mesmo tamanho (normalmente versões do mesmo modelo-base, como um Instruct e um Coder), não precisa treinar nada. O `fusao.py` acha a rotação de cada junção com um pouco de texto de calibração e grava um modelo comum:
+
+```bash
+python fusao.py --peca Qwen/Qwen2.5-3B-Instruct:0-19 --peca Qwen/Qwen2.5-Coder-3B-Instruct:20-35 \
+    --texto meus_textos/ --saida fusoes/instruct-coder --gguf q8_0 --lmstudio
+python fusao.py --peca A:0-15 --peca B:16-31 --saida x --so-checar      # só verifica se combinam
+```
+
+- **Qualquer tamanho:** os pesos são lidos e gravados tensor por tensor (a memória usada é a de uma camada), e cada modelo é carregado sozinho, numa placa, em várias placas (`device_map="auto"`) ou só na RAM (`--dispositivo cpu`).
+- **Arquiteturas:** Llama, Mistral, Qwen2/2.5, Qwen3 e MoE (Mixtral, Qwen2-MoE, Qwen3-MoE; os roteadores e todos os especialistas também são girados).
+- **Verifica antes:** mesma arquitetura, tamanho, RoPE e tokenizador. Se algo for diferente, diz exatamente o quê, e aí o caminho é costurar + destilar.
+- **Saída:** pasta do Hugging Face, ficha do modelo com cada peça e **as licenças que a fusão herda**, bits por caractere da fusão contra cada original, e o `.gguf`.
+- **Testado:** o `teste_fusao.py` escreve um modelo em bases giradas aleatórias e funde os pedaços de volta (2 e 3 peças, densos e MoE). O resultado bate com o modelo original.
+
+No programa: aba ⑤, parte *fusão direta*.
+
 ---
 
 ## 🧠 Modo cérebro: especialistas sob demanda

@@ -7,3 +7,5 @@ pandas
 pyarrow
 peft
 pyyaml
+accelerate
+safetensors
