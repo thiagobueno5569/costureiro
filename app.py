@@ -923,4 +923,9 @@ with gr.Blocks(title="Costureiro") as app:
     app.load(lambda: gr.update(choices=listar_ias()), None, e_escolha)
 
 if __name__ == "__main__":
-    app.queue().launch(server_name="127.0.0.1", server_port=7861, inbrowser=True, theme=TEMA, css=CSS)
+    import os
+    # no PC: só abre no próprio computador. Num servidor (RunPod etc.): COSTUREIRO_HOST=0.0.0.0 e/ou COSTUREIRO_LINK=1
+    host = os.environ.get("COSTUREIRO_HOST", "127.0.0.1")
+    link = os.environ.get("COSTUREIRO_LINK", "") not in ("", "0")
+    app.queue().launch(server_name=host, server_port=int(os.environ.get("COSTUREIRO_PORTA", "7861")),
+                       inbrowser=host == "127.0.0.1" and not link, share=link, theme=TEMA, css=CSS)
