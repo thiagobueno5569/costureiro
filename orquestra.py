@@ -394,7 +394,8 @@ def criar(r: ReceitaOrquestra, pasta: Path, log=print, parar=lambda: False, prog
         L(f"assunto '{a}': {len(treino[a])} trechos de treino, {len(teste[a])} de teste")
     todos_tr = [t for a in treino for t in treino[a]]
     if not todos_tr:
-        raise ValueError("sem textos de treino")
+        raise ValueError("sem textos de treino: não consegui baixar o MBPP/GSM8K (sem internet?) e não há textos em textos/. "
+                         "Rode preparar_textos.py ou indique assuntos com textos.")
 
     # ---- modelos, camadas e pontes
     progresso(0.02, "carregando e escolhendo as camadas")

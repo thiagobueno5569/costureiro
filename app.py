@@ -330,7 +330,7 @@ def barra_progresso(p: dict | None, inicio: float) -> str:
     decorrido = _t.time() - inicio
     fase = {"carregando": "Carregando as IAs", "preparando": "Preparando o super agente",
             "treinando": "Treinando o super agente", "medindo": "Medindo nos textos de teste",
-            "exportando": "Levando para o LM Studio", "pronto": "Pronto!"}.get(p.get("fase"), "")
+            "exportando": "Levando para o LM Studio", "orquestra": "Treinando a orquestra", "pronto": "Pronto!"}.get(p.get("fase"), "")
     detalhe = p.get("texto", "")
     sep = " · " if detalhe else ""
     if p.get("fase") == "treinando":
@@ -565,6 +565,113 @@ def ver_cerebro(nome_ia):
     ok = bool(r.resultados.get("assuntos"))
     return (relatorio_md := (SAIDAS / nome_ia / "resultado.md").read_text(encoding="utf-8")), \
         gr.update(value=grafico_cerebro(r) if ok else None, visible=ok), gr.update(value=grafico_uso(r) if ok else None, visible=ok)
+
+# ----------------------------------------------------------------------------- orquestra
+
+def listar_orquestras():
+    return sorted(p.name for p in SAIDAS.iterdir() if (p / "receita.json").exists() and _tipo(p) == "orquestra")
+
+
+def ver_orquestra(nome):
+    if not nome:
+        return ""
+    arq = SAIDAS / nome / "resultado.md"
+    aval = RAIZ / "resultados" / f"avaliacao_{nome}.md"
+    txt = arq.read_text(encoding="utf-8") if arq.exists() else ""
+    if aval.exists():
+        txt += "\n\n---\n" + aval.read_text(encoding="utf-8")
+    return txt
+
+
+def criar_orquestra_ui(nome, base, solista, epocas_o, trechos_o):
+    import time as _t
+    import orquestra
+    _parar.clear()
+    if not base or not solista:
+        yield "Escolha a IA base e a segunda IA.", "", ""
+        return
+    r = orquestra.ReceitaOrquestra((nome or "orquestra").strip(), base, [orquestra.Solista(solista)],
+                                   epocas=int(epocas_o), max_trechos=int(trechos_o))
+    pasta = SAIDAS / "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in r.nome)
+    q, log, inicio = queue.Queue(), [], _t.time()
+    prog = {"fase": "orquestra", "fracao": 0.01, "texto": "começando"}
+    yield "", barra_progresso(prog, inicio), ""
+
+    def tarefa():
+        nucleo.liberar_cache()
+        orquestra.criar(r, pasta, log=lambda m: q.put(("log", m)), parar=_parar.is_set,
+                        progresso=lambda f, t: q.put(("prog", (f, t))))
+    out = _em_fundo(tarefa, q)
+    while (item := q.get()) is not None:
+        tipo_i, c = item
+        if tipo_i == "log":
+            log.append(c)
+        else:
+            prog = {"fase": "orquestra", "fracao": c[0], "texto": c[1]}
+        yield "\n".join(log[-60:]), barra_progresso(prog, inicio), ""
+    nucleo.liberar_cache()
+    if "erro" in out:
+        yield "\n".join(log + ["", out["erro"]]), barra_progresso(prog, inicio), "❌ Deu erro: veja os detalhes."
+        return
+    yield ("\n".join(log[-60:]), barra_progresso({"fase": "pronto", "fracao": 1, "texto": r.nome}, inicio),
+           (pasta / "resultado.md").read_text(encoding="utf-8") +
+           "\n\nPara medir em tarefas de verdade: `python avaliar.py --ia ias_novas/" + pasta.name + "`")
+
+
+def conversar_orquestra(nome, prompt, n, comparar):
+    if not nome:
+        return "<i>Escolha uma orquestra.</i>", ""
+    if not nucleo.TRAVA.acquire(blocking=False):
+        return OCUPADO, ""
+    import html as _h
+    import torch
+    import orquestra
+    ia = None
+    try:
+        nucleo.liberar_cache()
+        ia = orquestra.IAOrquestra.abrir(SAIDAS / nome, log=lambda *_: None)
+        paradas = ["\nPergunta:", "\nQuestion:", "\n\n\n"]
+        texto = ia.completar(prompt, int(n), paradas)
+        # quanto a segunda IA participou de cada palavra (o portão da posição anterior decide a próxima)
+        tudo = prompt + texto
+        e = ia.tok(tudo, return_offsets_mapping=True, add_special_tokens=False)
+        d = ia.preparar(tudo, max_tok=10 ** 9)
+        with torch.no_grad():
+            ia.logits(d)
+        w = torch.softmax(ia.ultimo_portao, -1).cpu()
+        nomes = [s.nome or nome_curto(s.modelo) for s in ia.r.solistas]
+        spans, ini = [], len(prompt)
+        for k, (a, b) in enumerate(e["offset_mapping"]):
+            if b <= ini or k == 0:
+                continue
+            pedaco = tudo[max(a, ini):b]
+            ws = w[k - 1]
+            sol = 1 - float(ws[0])
+            alfa = int(min(1.0, sol / 0.5) * 200)
+            titulo = f"base {100 * float(ws[0]):.0f}% · " + " · ".join(f"{nm} {100 * float(ws[j + 1]):.0f}%" for j, nm in enumerate(nomes))
+            spans.append(f'<span title="{titulo}" style="background:{COR[1]}{alfa:02x};border-radius:3px">{_h.escape(pedaco)}</span>')
+        html = (f'<div class="cartao"><div style="color:#8b8a83;font-size:12px;margin-bottom:8px">Cada pedaço fica mais '
+                f'colorido quanto mais a <b>segunda IA</b> ({_h.escape(", ".join(nomes))}) participou dele. Passe o mouse para ver a '
+                f'divisão.</div><pre style="white-space:pre-wrap;margin:0;font-size:14px;color:#f0efec">{_h.escape(prompt)}'
+                f'{"".join(spans)}</pre></div>')
+        so_base = ""
+        if comparar:
+            x = ia.tok(prompt, return_tensors="pt", add_special_tokens=False).to(nucleo.DEV)
+            with torch.no_grad():
+                o = ia.base.generate(**x, max_new_tokens=int(n), do_sample=False, pad_token_id=ia.tok.eos_token_id)
+            so_base = nucleo.cortar_parada(ia.tok.decode(o[0][x["input_ids"].shape[1]:], skip_special_tokens=True), paradas)[0]
+        return html, so_base
+    except Exception as ex:
+        msg = traceback.format_exc()
+        if "out of memory" in str(ex).lower():
+            msg = ("💾 A placa de vídeo não tem memória para as duas IAs desta orquestra juntas. "
+                   "Rode num servidor (RunPod) ou escolha uma orquestra com modelos menores.\n\n" + msg[-800:])
+        return "<pre>" + _h.escape(msg) + "</pre>", ""
+    finally:
+        del ia
+        nucleo.liberar_cache()
+        nucleo.TRAVA.release()
+
 
 # ----------------------------------------------------------------------------- exportar para o LM Studio
 
@@ -818,6 +925,50 @@ with gr.Blocks(title="Costureiro") as app:
             c_gerar = gr.Button("Gerar", variant="primary")
             c_saida = gr.HTML()
 
+        with gr.Tab("🎼 Orquestra"):
+            gr.HTML('<div class="cartao" style="margin-bottom:10px"><b>Duas IAs tocando juntas.</b> A IA <b>base</b> roda '
+                    'inteira. A <b>segunda IA</b> lê o mesmo texto em paralelo até uma camada funda; uma ponte traduz o '
+                    'pensamento dela e um <i>portão</i> decide, palavra por palavra, quanto usar de cada uma. Começa igual à '
+                    'base, então não começa pior. O treino imita, em cada palavra, a IA original que acerta melhor.<br><br>'
+                    '<b>O que medimos (HumanEval, 164 questões):</b> Coder-1.5B sozinho 46,3% → orquestra Coder + Math '
+                    '<b>61,0%</b>. Mas o <b>controle</b> Coder + Coder chega a 58,5%: quase todo o ganho vem do treino da '
+                    'ponte (um ajuste fino barato), não da soma das habilidades. Detalhes no README.<br>'
+                    '<span style="color:#8b8a83">Treinar uma orquestra de 1.5B precisa de ~12 GB de placa (use um servidor). '
+                    'Conversar com uma pronta precisa de ~6 GB.</span></div>')
+            gr.HTML('<div class="passo">conversar e ver quando a segunda IA entra</div>')
+            with gr.Row():
+                o_escolha = gr.Dropdown(listar_orquestras(), label="Orquestra", scale=5)
+                o_atual = gr.Button("↻ atualizar", scale=1)
+            o_info = gr.Markdown()
+            o_prompt = gr.Textbox(label="Escreva o começo — a IA continua", lines=4,
+                                  value='def media(numeros):\n    """Devolve a média de uma lista de números."""\n')
+            with gr.Row():
+                o_n = gr.Slider(10, 400, value=120, step=10, label="Tamanho da resposta")
+                o_comparar = gr.Checkbox(value=True, label="Comparar com a base sozinha")
+            o_gerar = gr.Button("Gerar", variant="primary", size="lg")
+            o_saida = gr.HTML()
+            o_base = gr.Textbox(label="só a IA base", lines=8)
+            gr.HTML('<div class="passo" style="margin-top:22px">criar uma orquestra</div>')
+            with gr.Row():
+                o_nome = gr.Textbox(label="Nome", value="orq-coder-com-math", scale=2)
+                o_b = gr.Dropdown(SUGESTOES, value="Qwen/Qwen2.5-Coder-1.5B-Instruct", allow_custom_value=True,
+                                  label="IA base (escreve a resposta)", scale=3)
+                o_s = gr.Dropdown(SUGESTOES, value="Qwen/Qwen2.5-Math-1.5B-Instruct", allow_custom_value=True,
+                                  label="segunda IA (lê junto)", scale=3)
+            with gr.Row():
+                o_ep = gr.Slider(1, 5, value=2, step=1, label="Épocas")
+                o_tr = gr.Slider(200, 5000, value=1500, step=100, label="Trechos de treino por assunto")
+            gr.HTML("<div style='color:#8b8a83;font-size:13px'>Usa problemas de programação (MBPP, só a parte de treino), "
+                    "de matemática (GSM8K, só a parte de treino) e código real. Baixa tudo sozinho. As camadas são "
+                    "escolhidas pela rotação. Para um teste justo, crie também um <b>controle</b>: a mesma IA nos dois campos.</div>")
+            with gr.Row():
+                o_btn = gr.Button("🎼 Criar orquestra", variant="primary", size="lg", scale=4)
+                o_parar = gr.Button("Parar", size="lg", scale=1)
+            o_barra = gr.HTML()
+            with gr.Accordion("Detalhes do andamento", open=False):
+                o_log = gr.Textbox(lines=10, max_lines=20, show_label=False, autoscroll=True)
+            o_res = gr.Markdown()
+
         with gr.Tab("④ Conversar"):
             with gr.Row():
                 escolha = gr.Dropdown(listar_ias(), label="IA nova", scale=5)
@@ -920,6 +1071,12 @@ with gr.Blocks(title="Costureiro") as app:
     escolha.input(ver_ia, escolha, [resumo_ia, g_ia])
     b_gerar.click(conversar, [escolha, prompt, n_tok, temp, comparar], [saida, saida1, saida2])
 
+    o_atual.click(lambda: gr.update(choices=listar_orquestras()), None, o_escolha)
+    o_escolha.input(ver_orquestra, o_escolha, o_info)
+    o_gerar.click(conversar_orquestra, [o_escolha, o_prompt, o_n, o_comparar], [o_saida, o_base])
+    o_btn.click(criar_orquestra_ui, [o_nome, o_b, o_s, o_ep, o_tr], [o_log, o_barra, o_res])
+    o_parar.click(lambda: _parar.set())
+    app.load(lambda: gr.update(choices=listar_orquestras()), None, o_escolha)
     e_atual.click(lambda: gr.update(choices=listar_ias()), None, e_escolha)
     e_escolha.input(ver_exportacao, e_escolha, e_info)
     e_btn.click(exportar_ui, [e_escolha, e_modo, e_tipo, e_epocas], [e_log, e_barra, e_res])
