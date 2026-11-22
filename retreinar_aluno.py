@@ -25,7 +25,7 @@ def main(argv=None):
     ap.add_argument("--gguf", default="q8_0")
     a = ap.parse_args(argv)
     pasta = Path(a.pasta)
-    todos = [json.loads(l) for l in (pasta / "exemplos.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    todos = [json.loads(l) for l in (pasta / "exemplos.jsonl").read_text(encoding="utf-8").split("\n") if l.strip()]
     mat = [(e["prompt"], e["resposta"]) for e in todos if e["prompt"].startswith("Problem:")]
     cod = [(e["prompt"], e["resposta"]) for e in todos if not e["prompt"].startswith("Problem:")]
     rng = random.Random(0)
