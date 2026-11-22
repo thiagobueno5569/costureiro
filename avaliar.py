@@ -142,6 +142,16 @@ class Cerebro:
         return cortar(texto, paradas)
 
 
+class Orquestra:
+    def __init__(self, pasta):
+        import orquestra
+        self.ia = orquestra.IAOrquestra.abrir(Path(pasta), log=lambda *_: None)
+        self.nome = f"orquestra ({Path(pasta).name})"
+
+    def completar(self, prompt, max_novos, paradas):
+        return self.ia.completar(prompt, max_novos, paradas)
+
+
 # ============================================================================ correção
 
 def rodar_codigo(programa: str, tempo: float = 10.0) -> bool:
@@ -183,7 +193,14 @@ def avaliar(pasta_ia: Path, tarefas: list[str], n: int = 0, extras: list[str] = 
     if not (pasta_ia / "receita.json").exists():
         raise SystemExit(f"não achei {pasta_ia / 'receita.json'} — use a pasta de uma IA em ias_novas/")
     cfg = json.loads((pasta_ia / "receita.json").read_text(encoding="utf-8"))
-    if cfg.get("tipo") == "cerebro":                  # modo cérebro: compara com a base e com cada especialista
+    if cfg.get("tipo") == "orquestra":                # orquestra: compara com a base e com cada solista
+        import orquestra
+        r = orquestra.ReceitaOrquestra.abrir(pasta_ia)
+        modelos = [] if so_originais else [("orquestra", lambda: Orquestra(pasta_ia))]
+        originais = [r.base] + [s.modelo for s in r.solistas]
+        partes = [{"modelo": r.base, "inicio": 0, "fim": "base"}] + \
+                 [{"modelo": s.modelo, "inicio": 0, "fim": s.ate} for s in r.solistas]
+    elif cfg.get("tipo") == "cerebro":                  # modo cérebro: compara com a base e com cada especialista
         r = nucleo.ReceitaCerebro.abrir(pasta_ia)
         modelos = [] if so_originais else [("cerebro", lambda: Cerebro(pasta_ia))]
         originais = [r.base] + [e.modelo for e in r.especialistas]
@@ -220,9 +237,35 @@ def avaliar(pasta_ia: Path, tarefas: list[str], n: int = 0, extras: list[str] = 
                 salvar(res, saida)
         del m
     nucleo.liberar_cache()
+    referencias(res, originais, dados)
     if saida:
         salvar(res, saida)
     return res
+
+
+def parece_codigo(prompt: str) -> bool:
+    return "def " in prompt or '"""' in prompt or "import " in prompt
+
+
+def referencias(res: dict, originais: list[str], dados: dict):
+    """Duas réguas que qualquer fusão precisa vencer para valer a pena:
+    roteador simples: escolhe a IA ORIGINAL inteira pela cara da pergunta (código → a de código; resto → a outra);
+    oráculo: conta acerto se QUALQUER original acertou (teto de 'escolher a IA certa por pergunta')."""
+    orig = list(dict.fromkeys(originais))
+    cod = next((m for m in orig if "coder" in m.lower() or "code" in m.lower()), None)
+    outra = next((m for m in orig if m != cod), orig[0])
+    for t, por_modelo in res["detalhes"].items():
+        if not all(m in por_modelo for m in orig):
+            continue
+        itens = dados[t]
+        acert_r, acert_o = 0, 0
+        for k, item in enumerate(itens):
+            escolhido = cod if (cod and parece_codigo(item["prompt"])) else outra
+            acert_r += por_modelo[escolhido][k]["ok"]
+            acert_o += any(por_modelo[m][k]["ok"] for m in orig)
+        n = max(1, len(itens))
+        res["tarefas"][t]["roteador simples (IA inteira por pergunta)"] = {"acerto": acert_r / n, "n": len(itens), "s_por_item": 0}
+        res["tarefas"][t]["oráculo (alguma original acerta)"] = {"acerto": acert_o / n, "n": len(itens), "s_por_item": 0}
 
 
 def relatorio(res: dict) -> str:
@@ -238,10 +281,15 @@ def relatorio(res: dict) -> str:
         for t, v in res["tarefas"].items():
             x = v.get(m)
             cel.append(f"{100 * x['acerto']:.1f}% (n={x['n']})" if x else "—")
-        nova = m.startswith(("costurada", "cérebro"))
-        lin.append(f"| {'**' + m + '**' if nova else '`' + m + '`'} | " + " | ".join(cel) + " |")
+        nova = m.startswith(("costurada", "cérebro", "orquestra"))
+        regua = m.startswith(("roteador", "oráculo"))
+        rotulo = f"**{m}**" if nova else (f"*{m}*" if regua else f"`{m}`")
+        lin.append(f"| {rotulo} | " + " | ".join(cel) + " |")
     lin += ["", "Decodificação gulosa, sem penalidade de repetição, mesmos prompts e paradas para todos. "
             "HumanEval/MBPP: o código gerado roda contra os testes oficiais. GSM8K: compara o número final.",
+            "*Roteador simples*: escolhe a IA original inteira pela cara da pergunta (código → a de código). "
+            "*Oráculo*: acerto se alguma original acertou (o teto de escolher a IA certa). "
+            "Uma fusão só vale a pena se passar do roteador.",
             "", "Respostas de cada item: arquivo `.json` ao lado."]
     return "\n".join(lin)
 
