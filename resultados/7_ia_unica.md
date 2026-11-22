@@ -57,7 +57,19 @@ acertou), **p = 0.121**: provável ganho, mas ainda pode ser sorte. Contra o Mat
 Cuidado ao ler: o roteador foi treinado com textos de treino do MBPP e do GSM8K (nunca o teste). Só ele (2×1536
 números por camada) foi treinado, mas parte do ganho pode vir desse ajuste, como aconteceu com a ponte da orquestra.
 
-MBPP e GSM8K em andamento.
+| modelo | MBPP sanitized (pass@1) |
+|---|---|
+| `Qwen/Qwen2.5-Coder-1.5B-Instruct` | 57.6% (n=257) |
+| `Qwen/Qwen2.5-Math-1.5B-Instruct` | 28.8% (n=257) |
+| **IA única (MoE Coder+Math)** | **49.8%** (n=257) |
+| *roteador simples (IA inteira por pergunta)* | 57.6% (n=257) |
+| *oráculo (alguma original acerta)* | 63.4% (n=257) |
+
+No MBPP o MoE **perde** para o Coder sozinho: +15/−35, **p = 0.007** (diferença real). Somando as duas provas de
+código (421 problemas), o MoE fica em +37/−47: no código, misturar o especialista de matemática mais atrapalha
+do que ajuda.
+
+GSM8K em andamento.
 
 ## Destilação conferida
 
