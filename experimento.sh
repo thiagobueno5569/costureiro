@@ -7,10 +7,11 @@
 # Roda em segundo plano (pode fechar o terminal). Acompanhe com:  tail -f /workspace/costureiro/resultados/experimento.log
 # Tudo fica em /workspace, que não some quando o pod é parado (Stop). Terminate apaga tudo.
 set -e
-cd "$(dirname "$0")"
+SCRIPT="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+cd "$(dirname "$SCRIPT")"
 mkdir -p resultados
 if [ -z "$COSTUREIRO_EM_FUNDO" ]; then
-  COSTUREIRO_EM_FUNDO=1 nohup bash "$0" "$@" > resultados/experimento.log 2>&1 &
+  COSTUREIRO_EM_FUNDO=1 nohup bash "$SCRIPT" "$@" > resultados/experimento.log 2>&1 &
   echo "Rodando em segundo plano. Acompanhe com:"
   echo "  tail -f $(pwd)/resultados/experimento.log"
   exit 0
