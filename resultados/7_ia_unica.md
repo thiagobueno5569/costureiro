@@ -69,7 +69,21 @@ No MBPP o MoE **perde** para o Coder sozinho: +15/−35, **p = 0.007** (diferen�
 código (421 problemas), o MoE fica em +37/−47: no código, misturar o especialista de matemática mais atrapalha
 do que ajuda.
 
-GSM8K em andamento.
+| modelo | GSM8K (acerto) |
+|---|---|
+| `Qwen/Qwen2.5-Coder-1.5B-Instruct` | 40.3% (n=439) |
+| `Qwen/Qwen2.5-Math-1.5B-Instruct` | 45.6% (n=439) |
+| **IA única (MoE Coder+Math)** | **35.1%** (n=439) |
+| *roteador simples (IA inteira por pergunta)* | 45.6% (n=439) |
+| *oráculo (alguma original acerta)* | 60.4% (n=439) |
+
+GSM8K: as 439 primeiras questões do teste (fatias 0/6 e 1/6 de 1.319, por falta de saldo). O MoE fica **abaixo
+dos dois**: contra o Math +56/−102 (p < 0.001), contra o Coder +59/−82 (p = 0.064).
+
+**Conclusão do MoE:** montado assim (atenção do Coder, FFNs como especialistas, só o roteador treinado), ele não
+vira uma IA melhor que as partes. A atenção do Coder não "sabe" usar a FFN do Math: as duas foram treinadas juntas
+em outro modelo, e trocar a metade de um modelo pela de outro quebra o acordo entre elas. Treinar só o roteador
+não basta; seria preciso ajustar também a atenção (ou ao menos uma ponte por camada).
 
 ## Destilação conferida
 
