@@ -219,11 +219,12 @@ def obter_conversor(log=print) -> Path:
 
 def para_gguf(pasta_hf: Path, arquivo: Path, tipo: str = "q8_0", log=print) -> Path:
     script = obter_conversor(log)
-    for pacote in ("numpy", "yaml", "tqdm", "requests", "safetensors"):
+    for pacote in ("numpy", "yaml", "tqdm", "requests", "safetensors", "sentencepiece", "google.protobuf"):
         try:
             __import__(pacote)
         except ImportError:
-            subprocess.run([sys.executable, "-m", "pip", "install", "pyyaml" if pacote == "yaml" else pacote], check=True)
+            nome = {"yaml": "pyyaml", "google.protobuf": "protobuf"}.get(pacote, pacote)
+            subprocess.run([sys.executable, "-m", "pip", "install", nome], check=True)
     env = dict(os.environ)
     env["PYTHONPATH"] = str(CONVERSOR / "gguf-py") + os.pathsep + str(CONVERSOR) + os.pathsep + env.get("PYTHONPATH", "")
     env["PYTHONIOENCODING"] = "utf-8"

@@ -9,3 +9,5 @@ peft
 pyyaml
 accelerate
 safetensors
+sentencepiece
+protobuf
