@@ -227,7 +227,8 @@ def para_gguf(pasta_hf: Path, arquivo: Path, tipo: str = "q8_0", log=print) -> P
     env = dict(os.environ)
     env["PYTHONPATH"] = str(CONVERSOR / "gguf-py") + os.pathsep + str(CONVERSOR) + os.pathsep + env.get("PYTHONPATH", "")
     env["PYTHONIOENCODING"] = "utf-8"
-    arquivo = Path(arquivo)
+    pasta_hf = Path(pasta_hf).resolve()       # o conversor roda em outra pasta: caminhos relativos quebrariam
+    arquivo = Path(arquivo).resolve()
     arquivo.parent.mkdir(parents=True, exist_ok=True)
     cmd = [sys.executable, str(script), str(pasta_hf), "--outfile", str(arquivo), "--outtype", tipo]
     log(f"  convertendo para .gguf ({tipo})...")
