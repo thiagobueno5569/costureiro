@@ -243,6 +243,16 @@ def avaliar(pasta_ia: Path, tarefas: list[str], n: int = 0, extras: list[str] = 
     return res
 
 
+def mcnemar(a: list[bool], b: list[bool]) -> tuple[int, int, float]:
+    """Teste pareado exato: (só a acertou, só b acertou, p bilateral). p < 0,05 = diferença provavelmente real."""
+    from math import comb
+    x = sum(1 for u, v in zip(a, b) if u and not v)
+    y = sum(1 for u, v in zip(a, b) if v and not u)
+    n, k = x + y, min(x, y)
+    p = 1.0 if n == 0 else min(1.0, 2 * sum(comb(n, i) for i in range(k + 1)) / 2 ** n)
+    return x, y, p
+
+
 def parece_codigo(prompt: str) -> bool:
     return "def " in prompt or '"""' in prompt or "import " in prompt
 
@@ -265,6 +275,12 @@ def referencias(res: dict, originais: list[str], dados: dict):
             acert_o += any(por_modelo[m][k]["ok"] for m in orig)
         n = max(1, len(itens))
         res["tarefas"][t]["roteador simples (IA inteira por pergunta)"] = {"acerto": acert_r / n, "n": len(itens), "s_por_item": 0}
+        rot = [por_modelo[cod if (cod and parece_codigo(it["prompt"])) else outra][k]["ok"] for k, it in enumerate(itens)]
+        for nova in [m for m in por_modelo if m.startswith(("costurada", "cérebro", "orquestra"))]:
+            ok_n = [x["ok"] for x in por_modelo[nova]]
+            comp = {m: mcnemar(ok_n, [x["ok"] for x in por_modelo[m]]) for m in orig}
+            comp["roteador"] = mcnemar(ok_n, rot)
+            res.setdefault("pareado", {}).setdefault(t, {})[nova] = comp
         res["tarefas"][t]["oráculo (alguma original acerta)"] = {"acerto": acert_o / n, "n": len(itens), "s_por_item": 0}
 
 
@@ -285,6 +301,13 @@ def relatorio(res: dict) -> str:
         regua = m.startswith(("roteador", "oráculo"))
         rotulo = f"**{m}**" if nova else (f"*{m}*" if regua else f"`{m}`")
         lin.append(f"| {rotulo} | " + " | ".join(cel) + " |")
+    if res.get("pareado"):
+        lin += ["", "**Teste pareado (McNemar exato)**: em quantos itens só a IA nova acertou × só a outra acertou, "
+                "e a chance de a diferença ser sorte (p < 0,05 = provavelmente real):", ""]
+        for t, por_nova in res["pareado"].items():
+            for nova, comps in por_nova.items():
+                lin.append(f"- {nomes[t]} · {nova}: " + "; ".join(
+                    f"contra {Path(m).name}: +{x}/−{y}, p = {p:.3f}" for m, (x, y, p) in comps.items()))
     lin += ["", "Decodificação gulosa, sem penalidade de repetição, mesmos prompts e paradas para todos. "
             "HumanEval/MBPP: o código gerado roda contra os testes oficiais. GSM8K: compara o número final.",
             "*Roteador simples*: escolhe a IA original inteira pela cara da pergunta (código → a de código). "
