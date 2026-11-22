@@ -257,6 +257,10 @@ def treinar_roteador(pasta: Path, textos: dict[str, list[str]], passos: int = 60
         g.remove()
     for p in params:
         p.data = p.data.to(dt)
+    # o save_pretrained pode trocar os nomes dos arquivos de pesos (shards); um índice antigo que sobrasse
+    # apontaria para arquivos apagados e quebraria o conversor do llama.cpp
+    for velho in list(Path(pasta).glob("model*.safetensors")) + list(Path(pasta).glob("model.safetensors.index.json")):
+        velho.unlink()
     m.save_pretrained(pasta, safe_serialization=True)
     del m
     gc.collect(); torch.cuda.empty_cache() if torch.cuda.is_available() else None

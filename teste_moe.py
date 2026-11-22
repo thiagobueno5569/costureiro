@@ -99,4 +99,8 @@ r16 = moe.treinar_roteador(saida, textos, passos=20, max_tok=64, dtype=torch.bfl
 print("roteador treinado em bf16:", r16)
 M = AutoModelForCausalLM.from_pretrained(saida)
 print("abre de novo:", type(M).__name__)
+import json as _j
+for ix in saida.glob("*.index.json"):     # índice (se houver) só aponta para arquivos que existem
+    faltam = {f for f in _j.loads(ix.read_text())["weight_map"].values() if not (saida / f).exists()}
+    assert not faltam, faltam
 print("OK")
