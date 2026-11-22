@@ -17,7 +17,6 @@ limite, numa pasta temporária). É o procedimento padrão, mas prefira rodar nu
 from __future__ import annotations
 
 import argparse
-import io
 import json
 import re
 import subprocess
@@ -120,6 +119,29 @@ class Costurada:
         return cortar(texto, paradas)
 
 
+class Cerebro:
+    """IA do modo cérebro: a base consulta os especialistas pelo portão."""
+
+    def __init__(self, pasta):
+        self.ia = nucleo.IACerebro.abrir(Path(pasta), log=lambda *_: None)
+        self.nome = f"cérebro ({Path(pasta).name})"
+
+    @torch.no_grad()
+    def completar(self, prompt, max_novos, paradas):
+        tok = self.ia.tok
+        ids = tok(prompt, add_special_tokens=False)["input_ids"]
+        gerados, texto = [], ""
+        for _ in range(max_novos):
+            prox = int(self.ia.logits(ids[-2048:])[-1].argmax())
+            if prox == tok.eos_token_id:
+                break
+            ids.append(prox); gerados.append(prox)
+            texto = tok.decode(gerados, skip_special_tokens=True).rstrip("\ufffd")
+            if any(p in texto for p in paradas):
+                break
+        return cortar(texto, paradas)
+
+
 # ============================================================================ correção
 
 def rodar_codigo(programa: str, tempo: float = 10.0) -> bool:
@@ -157,14 +179,27 @@ def corrigir(tarefa: str, item: dict, resposta: str) -> bool:
 
 def avaliar(pasta_ia: Path, tarefas: list[str], n: int = 0, extras: list[str] = (), log=print,
             saida: Path | None = None, so_originais: bool = False) -> dict:
-    r = nucleo.Receita.abrir(pasta_ia)
-    modelos = [] if so_originais else [("costurada", lambda: Costurada(pasta_ia))]
-    for p in r.partes:
-        modelos.append((p.modelo, lambda nm=p.modelo: Original(nm)))
+    pasta_ia = Path(pasta_ia)
+    if not (pasta_ia / "receita.json").exists():
+        raise SystemExit(f"não achei {pasta_ia / 'receita.json'} — use a pasta de uma IA em ias_novas/")
+    cfg = json.loads((pasta_ia / "receita.json").read_text(encoding="utf-8"))
+    if cfg.get("tipo") == "cerebro":                  # modo cérebro: compara com a base e com cada especialista
+        r = nucleo.ReceitaCerebro.abrir(pasta_ia)
+        modelos = [] if so_originais else [("cerebro", lambda: Cerebro(pasta_ia))]
+        originais = [r.base] + [e.modelo for e in r.especialistas]
+        partes = [{"modelo": r.base, "inicio": 0, "fim": "base"}] + \
+                 [{"modelo": e.modelo, "inicio": e.inicio, "fim": e.fim} for e in r.especialistas]
+    else:
+        r = nucleo.Receita.abrir(pasta_ia)
+        modelos = [] if so_originais else [("costurada", lambda: Costurada(pasta_ia))]
+        originais = [p.modelo for p in r.partes]
+        partes = [p.__dict__ for p in r.partes]
+    for nm in dict.fromkeys(originais):
+        modelos.append((nm, lambda nm=nm: Original(nm)))
     for e in extras:
         modelos.append((e, lambda nm=e: Original(nm)))
     dados = {t: carregar_tarefa(t)[: n or None] for t in tarefas}
-    res = {"ia": str(pasta_ia), "partes": [p.__dict__ for p in r.partes], "tarefas": {}, "detalhes": {}}
+    res = {"ia": str(pasta_ia), "partes": partes, "tarefas": {}, "detalhes": {}}
     for chave, fabrica in modelos:
         nucleo.liberar_cache()
         m = fabrica()
@@ -194,7 +229,8 @@ def relatorio(res: dict) -> str:
     nomes = {"humaneval": "HumanEval (pass@1)", "mbpp": "MBPP sanitized (pass@1)", "gsm8k": "GSM8K (acerto)"}
     modelos = list(dict.fromkeys(m for t in res["tarefas"].values() for m in t))
     lin = [f"# Avaliação em tarefas de verdade · `{Path(res['ia']).name}`", "",
-           "Partes: " + " → ".join(f"`{p['modelo']}` [{p['inicio']}–{p['fim']}]" for p in res["partes"]), "",
+           "Partes: " + " · ".join(f"`{p['modelo']}` " + ("(base)" if p["fim"] == "base" else f"[{p['inicio']}–{p['fim']}]")
+                                   for p in res["partes"]), "",
            "| modelo | " + " | ".join(nomes[t] for t in res["tarefas"]) + " |",
            "|---|" + "---|" * len(res["tarefas"])]
     for m in modelos:
@@ -202,7 +238,8 @@ def relatorio(res: dict) -> str:
         for t, v in res["tarefas"].items():
             x = v.get(m)
             cel.append(f"{100 * x['acerto']:.1f}% (n={x['n']})" if x else "—")
-        lin.append(f"| {'**' + m + '**' if m.startswith('costurada') else '`' + m + '`'} | " + " | ".join(cel) + " |")
+        nova = m.startswith(("costurada", "cérebro"))
+        lin.append(f"| {'**' + m + '**' if nova else '`' + m + '`'} | " + " | ".join(cel) + " |")
     lin += ["", "Decodificação gulosa, sem penalidade de repetição, mesmos prompts e paradas para todos. "
             "HumanEval/MBPP: o código gerado roda contra os testes oficiais. GSM8K: compara o número final.",
             "", "Respostas de cada item: arquivo `.json` ao lado."]
@@ -218,7 +255,7 @@ def salvar(res: dict, saida: Path):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Costureiro · avaliação em tarefas de verdade")
-    ap.add_argument("--ia", required=True, help="pasta da IA costurada (ias_novas/...)")
+    ap.add_argument("--ia", required=True, help="pasta da IA nova (ias_novas/...): costurada ou do modo cérebro")
     ap.add_argument("--tarefas", default="humaneval,mbpp,gsm8k")
     ap.add_argument("--n", type=int, default=0, help="quantos itens por tarefa (0 = todos)")
     ap.add_argument("--extra", action="append", default=[], help="outro modelo para comparar (repita)")
