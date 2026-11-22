@@ -98,8 +98,24 @@ def carregar_modelo(nome: str, dispositivo: str = DEV):
 
 def liberar_cache():
     _cache.clear()
+    import gc
+    gc.collect()
     if DEV == "cuda":
         torch.cuda.empty_cache()
+
+
+def manter_so(nomes) -> None:
+    """Tira da placa os modelos em cache que a próxima tarefa não vai usar (as tarefas se acumulavam
+    na memória e a placa enchia). Chaves de especialistas são 'modelo|inicio-fim'."""
+    nomes = set(nomes)
+    sair = [k for k in _cache if k.split("|")[0] not in nomes]
+    for k in sair:
+        del _cache[k]
+    if sair:
+        import gc
+        gc.collect()
+        if DEV == "cuda":
+            torch.cuda.empty_cache()
 
 
 def camadas(m):
@@ -493,6 +509,7 @@ def costurar(receita: Receita, pasta_saida: Path, log: Callable[[str], None] = p
 
     if not receita.assuntos:
         raise ValueError("indique pelo menos um assunto com textos de foco")
+    manter_so(p.modelo for p in receita.partes)
     treino_txt, teste_txt = dados_por_assunto(receita, rng)
     for a in receita.assuntos:
         L(f"assunto '{a}': {len(treino_txt[a])} trechos de treino, {len(teste_txt[a])} de teste")
@@ -590,6 +607,7 @@ def relatorio(r: Receita) -> str:
 @torch.no_grad()
 def sugerir_corte(modelo_a: str, modelo_b: str, textos: list[str], log=print, fracoes=(0.3, 0.4, 0.5, 0.6, 0.7), max_tok=160):
     """Testa vários pontos de corte só com a rotação (rápido) e devolve o melhor (inicio_b, fim_a)."""
+    manter_so([modelo_a, modelo_b])
     na = len(camadas(carregar_modelo(modelo_a)[1]))
     nb = len(camadas(carregar_modelo(modelo_b)[1]))
     rng = random.Random(1)
@@ -649,6 +667,7 @@ def analisar(modelos: list[str], assuntos: dict[str, list[str]], n_trechos=10, m
     """Para cada IA: (1) bits/caractere em cada assunto; (2) importância de cada camada para cada assunto
     = quanto o erro sobe quando aquela camada é desligada. Camadas importantes para um assunto
     são as 'melhores partes' daquela IA para ele."""
+    manter_so(modelos)
     rng = random.Random(3)
     textos = {}
     for a, arqs in assuntos.items():
@@ -706,10 +725,19 @@ def _podar(m, inicio: int, fim: int):
     return m
 
 
-def _carregar_cru(nome: str):
+def _carregar_cru(nome: str, ate_camada: int | None = None):
+    """Carrega na RAM, joga fora as camadas depois de `ate_camada` (o especialista nunca usa) e a
+    cabeça de saída, e só então manda para a placa — um especialista de 7B usado até a metade ocupa metade."""
     from transformers import AutoModelForCausalLM, AutoTokenizer
     tok = AutoTokenizer.from_pretrained(nome)
-    m = AutoModelForCausalLM.from_pretrained(nome, dtype=DT).to(DEV).eval()
+    m = AutoModelForCausalLM.from_pretrained(nome, dtype=DT, low_cpu_mem_usage=True).eval()
+    if ate_camada is not None:
+        L = camadas(m)
+        while len(L) > ate_camada + 1:
+            del L[len(L) - 1]
+        if not getattr(m.config, "tie_word_embeddings", False):
+            m.lm_head = nn.Identity()
+    m = m.to(DEV)
     for q in m.parameters():
         q.requires_grad_(False)
     return tok, m
@@ -800,8 +828,10 @@ class IACerebro(nn.Module):
             if chave in _cache:
                 self.esps.append(_cache[chave])
                 continue
-            tok_e, m_e = _carregar_cru(e.modelo)
-            n = len(camadas(m_e))
+            n = info_modelo(e.modelo)["camadas"]
+            if not 0 <= e.inicio <= e.fim < n:
+                raise ValueError(f"especialista {e.nome}: camadas {e.inicio}..{e.fim} fora de 0..{n - 1}")
+            tok_e, m_e = _carregar_cru(e.modelo, ate_camada=e.fim)
             if not 0 <= e.inicio <= e.fim < n:
                 raise ValueError(f"especialista {e.nome}: camadas {e.inicio}..{e.fim} fora de 0..{n - 1}")
             if textos_inicio:                       # ponte começa pela rotação (com a IA ainda inteira)
@@ -922,6 +952,7 @@ def criar_cerebro(r: ReceitaCerebro, pasta_saida: Path, log=print, parar=lambda:
     rng = random.Random(0)
     torch.manual_seed(0)
     L = lambda m: log(f"[{(time.time() - t0) / 60:5.1f} min] {m}")
+    manter_so([r.base] + [e.modelo for e in r.especialistas])
     treino, teste = {}, {}
     for a, arqs in r.assuntos.items():
         tr = fatiar(ler_textos(arqs), rng)

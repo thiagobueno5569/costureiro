@@ -2,7 +2,7 @@
 e matemática (problemas resolvidos do GSM8K). Grava em textos/programacao e textos/matematica."""
 import io
 import random
-import sys
+import sysconfig
 import urllib.request
 from pathlib import Path
 
@@ -11,7 +11,7 @@ RAIZ = Path(__file__).parent / "textos"
 (RAIZ / "matematica").mkdir(parents=True, exist_ok=True)
 
 # programação: ~3 MB de código Python de verdade (biblioteca padrão)
-lib = Path(sys.base_prefix) / "Lib"
+lib = Path(sysconfig.get_paths()["stdlib"])          # Windows: ...\\Lib · Linux: /usr/lib/python3.x
 arqs = [f for f in lib.rglob("*.py") if "test" not in f.parts and "site-packages" not in f.parts and "idlelib" not in f.parts]
 random.Random(0).shuffle(arqs)
 total, partes = 0, []
@@ -24,6 +24,8 @@ for f in arqs:
     total += len(t)
     if total > 3_000_000:
         break
+if total < 100_000:
+    raise SystemExit(f"achei pouco código Python em {lib} ({total} caracteres); coloque arquivos em textos/programacao")
 (RAIZ / "programacao" / "python_stdlib.py.txt").write_text("\n\n".join(partes), encoding="utf-8")
 print("programação:", total, "caracteres de", len(partes), "arquivos")
 

@@ -6,7 +6,7 @@ exec(open(Path(__file__).parent / "teste_rapido.py", encoding="utf-8").read().sp
 import nucleo
 from nucleo import Especialista, ReceitaCerebro, criar_cerebro, IACerebro
 base = {"codigo": ("qwen", 300, 64, 4), "mat": ("llama", 350, 96, 6), "meio": ("llama", 320, 80, 5)}
-nucleo._carregar_cru = lambda n: tiny(*base[n])
+nucleo._carregar_cru = lambda n, ate_camada=None: tiny(*base[n])
 nucleo.info_modelo = lambda n: {"camadas": base[n][3], "dimensao": base[n][2], "arquitetura": "?"}
 tmp = Path(tempfile.mkdtemp())
 (tmp / "cod.py").write_text("".join(f"def f{i}(x):\n    return x * {i}\n" for i in range(600)))

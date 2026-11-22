@@ -243,8 +243,14 @@ def _em_fundo(fn, q):
             return
         try:
             out["r"] = fn()
-        except Exception:
+        except Exception as e:
             out["erro"] = traceback.format_exc()
+            if "OutOfMemoryError" in type(e).__name__ or "out of memory" in str(e).lower():
+                nucleo.liberar_cache()
+                out["erro"] = ("💾 A memória da placa de vídeo acabou. Os modelos dessa tarefa não cabem juntos na placa.\n"
+                               "Tente: modelos menores, menos camadas por especialista (no modo cérebro só as camadas "
+                               "usadas vão para a placa), 'Tokens por trecho' menor, ou uma placa com mais memória.\n"
+                               "Já liberei a placa; pode tentar de novo.\n\n" + out["erro"][-1500:])
         finally:
             nucleo.TRAVA.release()
         q.put(None)

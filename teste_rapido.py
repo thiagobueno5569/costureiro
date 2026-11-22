@@ -26,15 +26,15 @@ def tiny(tipo, vocab, d, L):
     return tok, m
 
 
-nucleo._cache["codigo"] = tiny("qwen", 300, 64, 4)
-nucleo._cache["mat"] = tiny("llama", 350, 96, 6)
-nucleo._cache["meio"] = tiny("llama", 320, 80, 5)
+MODELOS = {"codigo": tiny("qwen", 300, 64, 4), "mat": tiny("llama", 350, 96, 6), "meio": tiny("llama", 320, 80, 5)}
+nucleo._cache.update(MODELOS)
 tmp = Path(tempfile.mkdtemp())
 (tmp / "cod.py").write_text("def soma(a, b):\n    return a + b\n\n" * 200)
 (tmp / "mat.txt").write_text("A derivada de x^2 é 2x. A integral de 2x é x^2 + C.\n" * 200)
 
 for partes in ([Parte("codigo", 0, 1), Parte("mat", 3, 5)],
                [Parte("codigo", 0, 1), Parte("meio", 2, 3), Parte("mat", 4, 5)]):
+    nucleo._cache.update(MODELOS)      # cada tarefa tira da placa o que não usa; o teste devolve
     r = Receita("teste", partes, assuntos={"programação": [str(tmp / "cod.py")], "matemática": [str(tmp / "mat.txt")]},
                 epocas=2, max_tok=64)
     ia, res = costurar(r, tmp / f"ia_{len(partes)}")
