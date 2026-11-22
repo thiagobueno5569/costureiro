@@ -3,12 +3,12 @@ title Costureiro
 cd /d "D:\IA\costureiro"
 set PY=D:\IA\venv\Scripts\python.exe
 set HF_HUB_DISABLE_SYMLINKS_WARNING=1
-"%PY%" -c "import gradio, plotly, pypdf, pandas, pyarrow" 2>NUL
+"%PY%" -c "import gradio, plotly, pypdf, pandas, pyarrow, peft, yaml" 2>NUL
 if errorlevel 1 goto instalar
 goto textos
 :instalar
 echo Instalando o que falta - so na primeira vez...
-"%PY%" -m pip install gradio plotly pypdf pandas pyarrow
+"%PY%" -m pip install gradio plotly pypdf pandas pyarrow peft pyyaml
 :textos
 if exist "textos\matematica\gsm8k.txt" goto abrir
 echo Preparando textos de exemplo - programacao e matematica...

@@ -122,6 +122,7 @@ python app.py               # opens http://127.0.0.1:7861
 | **③ Stitch** | Trains the translators on your focus texts, with a live progress bar, a live learning curve, and the new model vs. the originals for each subject. |
 | **🧠 Brain mode** | A base model with specialists on demand, showing how often each specialist is called for each subject. |
 | **④ Chat** | Generates text with the new model side by side with the originals. |
+| **⑤ Export to LM Studio** | Turns the stitched model into a normal **`.gguf`** that opens in LM Studio, Ollama and llama.cpp, and copies it into LM Studio's models folder. |
 
 Command line:
 
@@ -132,6 +133,23 @@ python cli.py --a Qwen/Qwen2.5-Coder-0.5B-Instruct --b Qwen/Qwen2.5-Math-1.5B-In
 
 A new model is saved as a **recipe** (`receita.json`: which models and which layers) plus the **translators** (`tradutores.pt`). *The code and the UI are in Portuguese for now; the commands above are all you need.*
 
+### 📦 Exporting to a normal model (`.gguf`)
+
+A `.gguf` describes one stack of identical layers with one tokenizer, and the stitched model has a translator in the middle. So `exportar.py` has two routes, and picks one automatically:
+
+- **Exact fusion** (minutes), when all parts share the family, size, tokenizer and RoPE (e.g. Qwen2.5-1.5B + Qwen2.5-Math-1.5B + Qwen2.5-Coder-1.5B). If part B expects `y = s·x·Q` with `Q` orthogonal, B's layers are rewritten to work directly in A's basis, because RMSNorm doesn't care about rotation or scale:
+
+  | weights | becomes |
+  |---|---|
+  | input projections (q, k, v, gate, up) | `W · diag(g) · Qᵀ` (the norm gain `g` is absorbed, the norm becomes 1) |
+  | output projections (o, down) | `Q · W / s` |
+  | final head | `W · diag(g_final) · Qᵀ` |
+
+  The result is a plain Qwen/Llama model: A's layers followed by B's layers. It is exact for the linear part of the translator (`teste_exportar.py` checks that a model written in a random rotated basis fuses back to the original). The small MLP and the mean shift don't fit in the weights, so the app measures the exported model again and shows what that cost.
+- **Distillation** (any pair, slower): the stitched model is the teacher. For each training chunk we keep its 64 most likely next tokens. Then the last model (same tokenizer) learns to imitate it with LoRA, and the LoRA is merged into the weights.
+
+Both routes end with the official llama.cpp converter (`convert_hf_to_gguf.py`, downloaded on first use) → `q8_0` by default.
+
 ---
 
 ## ⚖️ Limitations (honestly)
@@ -139,13 +157,14 @@ A new model is saved as a **recipe** (`receita.json`: which models and which lay
 - All models sit on the GPU at once. With 6 GB, that is about 2–3B parameters in total.
 - Generation has no KV cache, so it is slow on long outputs. This is a research tool.
 - Each translator is specific to its pair of models and cut points.
-- The new model runs inside this tool (PyTorch), not as a GGUF.
+- Export to `.gguf` loses the translator's non-linear part (fusion) or some quality (distillation). Brain-mode models can't be exported yet.
 - With little data the translator memorizes. Use at least ~2 MB of text per subject.
 
 ## 🗺️ Roadmap
 
 - [ ] 10–50× more training text, to see how close stitching gets to the full model
 - [x] Code + math stitched model
+- [x] Export to `.gguf` for LM Studio / Ollama / llama.cpp (exact fusion or distillation)
 - [ ] Brain mode with real models: Qwen2.5-0.5B base + Coder and Math specialists
 - [ ] Evaluate on math that is not GSM8K-style, to separate adaptation from reasoning
 - [ ] **Shared latent space:** one encoder/decoder per model, so that any pair can talk without a pairwise translator

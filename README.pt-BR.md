@@ -92,6 +92,7 @@ python app.py               # abre em http://127.0.0.1:7861   (no Windows: ABRIR
 | **③ Costurar** | Treina os tradutores no texto do foco, com andamento ao vivo, curva de aprendizado e comparação da IA nova contra as originais em cada assunto. |
 | **🧠 Modo cérebro** | Uma IA base com especialistas sob demanda (veja abaixo). Mostra quanto a base aciona cada especialista em cada assunto. |
 | **④ Conversar** | Gera texto com a IA nova, lado a lado com as originais. |
+| **⑤ Levar para o LM Studio** | Transforma a IA costurada num **`.gguf`** comum, que abre no LM Studio, Ollama e llama.cpp, e já copia para a pasta de modelos do LM Studio. |
 
 Também dá para usar pela linha de comando:
 
@@ -101,6 +102,15 @@ python cli.py --a Qwen/Qwen2.5-Coder-0.5B-Instruct --b Qwen/Qwen2.5-Math-1.5B-In
 ```
 
 A IA nova é salva como uma **receita** (`receita.json`, que guarda quais IAs e quais camadas) mais os **tradutores** (`tradutores.pt`).
+
+### 📦 Levar para o LM Studio (`.gguf`)
+
+Um `.gguf` descreve uma pilha de camadas iguais com um tokenizador só, e a costurada tem um tradutor no meio. Por isso o `exportar.py` tem dois caminhos e escolhe sozinho:
+
+- **Fusão exata** (minutos): quando as partes têm a mesma família, o mesmo tamanho, o mesmo tokenizador e a mesma RoPE (ex.: Qwen2.5-1.5B + Math-1.5B + Coder-1.5B). Se a parte B espera `y = s·x·Q`, com `Q` ortogonal, as camadas de B são reescritas para trabalhar direto na base de A, porque a norma RMS não liga para rotação nem escala: entradas `W·diag(g)·Qᵀ`, saídas `Q·W/s`, cabeça final `W·diag(g_final)·Qᵀ`. Sai um Qwen/Llama comum. É exato para a parte linear do tradutor (o `teste_exportar.py` confere). A rede pequena e o deslocamento de média não cabem nos pesos, então o programa mede de novo e mostra quanto custou.
+- **Destilação** (qualquer par, mais demorada): a costurada vira professora. Para cada trecho guardamos as 64 palavras mais prováveis que ela prevê, e o último modelo (mesmo tokenizador) aprende a imitar com LoRA, que depois é somada aos pesos.
+
+Os dois terminam no conversor oficial do llama.cpp (`convert_hf_to_gguf.py`, baixado no primeiro uso), em `q8_0` por padrão.
 
 ---
 
@@ -150,13 +160,14 @@ $$\text{imp}(\ell, a) = \text{BPC}_a(\text{sem } \ell) - \text{BPC}_a(\text{mode
 - Todas as IAs ficam na placa ao mesmo tempo. Com 6 GB, cabem uns 2 a 3 bilhões de parâmetros somando todas.
 - A geração não usa cache de atenção: é lenta em textos longos. Serve para experimentar, não para uso diário.
 - Cada tradutor vale **só** para aquele par de IAs e aqueles pontos de corte.
-- A IA nova roda neste programa, em Python. Ela não vira um arquivo GGUF.
+- Ao virar `.gguf`, perde a parte não linear do tradutor (fusão) ou um pouco de qualidade (destilação). IAs do modo cérebro ainda não podem ser exportadas.
 - Com pouco texto, o tradutor decora em vez de aprender. Use pelo menos uns 2 MB de texto por assunto.
 
 ## 🗺️ Próximos passos
 
 - [ ] Treinar com 10 a 50× mais texto e medir quanto a costura chega perto da IA inteira
 - [x] Resultado da costura **Coder + Math** (programação + matemática)
+- [x] Exportar para `.gguf` (LM Studio, Ollama, llama.cpp): fusão exata ou destilação
 - [ ] Modo cérebro com as IAs de verdade: base Qwen2.5-0.5B + especialistas Coder e Math
 - [ ] Medir em problemas de outro estilo (não GSM8K), para separar adaptação de raciocínio
 - [ ] **Espaço comum:** um codificador e um decodificador por IA, para que qualquer par converse sem treinar um tradutor por par

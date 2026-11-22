@@ -5,3 +5,5 @@ plotly
 pypdf
 pandas
 pyarrow
+peft
+pyyaml

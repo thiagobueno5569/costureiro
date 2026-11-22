@@ -321,7 +321,7 @@ def barra_progresso(p: dict | None, inicio: float) -> str:
     decorrido = _t.time() - inicio
     fase = {"carregando": "Carregando as IAs", "preparando": "Preparando o super agente",
             "treinando": "Treinando o super agente", "medindo": "Medindo nos textos de teste",
-            "pronto": "Pronto!"}.get(p.get("fase"), "")
+            "exportando": "Levando para o LM Studio", "pronto": "Pronto!"}.get(p.get("fase"), "")
     detalhe = p.get("texto", "")
     sep = " · " if detalhe else ""
     if p.get("fase") == "treinando":
@@ -557,6 +557,62 @@ def ver_cerebro(nome_ia):
     return (relatorio_md := (SAIDAS / nome_ia / "resultado.md").read_text(encoding="utf-8")), \
         gr.update(value=grafico_cerebro(r) if ok else None, visible=ok), gr.update(value=grafico_uso(r) if ok else None, visible=ok)
 
+# ----------------------------------------------------------------------------- exportar para o LM Studio
+
+def ver_exportacao(nome_ia):
+    if not nome_ia:
+        return "Escolha uma IA nova."
+    try:
+        import exportar
+        r = Receita.abrir(SAIDAS / nome_ia)
+        pode, motivo = exportar.checar_fusao(r)
+        feito = SAIDAS / nome_ia / "exportacao.json"
+        extra = ""
+        if feito.exists():
+            extra = "\n\n---\n**Última exportação:**\n\n" + exportar.relatorio_exportacao(json.loads(feito.read_text(encoding="utf-8")))
+        if pode:
+            return (f"✅ **Dá para fazer a fusão exata** ({motivo}). A mudança de base vira parte dos pesos e sai um "
+                    f"modelo comum, em poucos minutos." + extra)
+        return (f"ℹ️ **Fusão exata não dá:** {motivo}. Vai pela **destilação**: um modelo normal "
+                f"(`{r.partes[-1].modelo}`) aprende a imitar a IA costurada. Demora mais (minutos a horas) e "
+                f"fica um pouco abaixo da costurada." + extra)
+    except Exception:
+        return traceback.format_exc()
+
+
+def exportar_ui(nome_ia, modo, tipo, epocas_d):
+    import time as _t
+    _parar.clear()
+    if not nome_ia:
+        yield "Escolha uma IA nova.", "", ""
+        return
+    import exportar
+    modo = {"Automático": "auto", "Fusão exata": "fusao", "Destilação": "destilacao"}[modo]
+    q, log, inicio = queue.Queue(), [], _t.time()
+    prog = {"fase": "exportando", "fracao": 0.01, "texto": "começando"}
+    yield "", barra_progresso(prog, inicio), ""
+    out = _em_fundo(lambda: exportar.exportar(SAIDAS / nome_ia, modo=modo, tipo=tipo, epocas=int(epocas_d),
+                                              log=lambda m: q.put(("log", m)), parar=_parar.is_set,
+                                              progresso=lambda f, t: q.put(("prog", (f, t)))), q)
+    while (item := q.get()) is not None:
+        tipo_i, c = item
+        if tipo_i == "log":
+            log.append(c)
+        else:
+            prog = {"fase": "exportando", "fracao": c[0], "texto": c[1]}
+        yield "\n".join(log[-60:]), barra_progresso(prog, inicio), ""
+    if "erro" in out:
+        yield "\n".join(log + ["", out["erro"]]), barra_progresso(prog, inicio), "❌ Deu erro: veja os detalhes do andamento."
+        return
+    res = out["r"]
+    como = ("Abra o LM Studio → **My Models** (ou a busca de modelos): ela aparece como **costureiro/" +
+            Path(res["gguf"]).stem.split(".")[0] + "**. Se não aparecer, feche e abra o LM Studio."
+            if res.get("lmstudio") else f"Arquivo: `{res['gguf']}`")
+    yield ("\n".join(log[-60:]), barra_progresso({"fase": "pronto", "fracao": 1, "texto": Path(res["gguf"]).name}, inicio),
+           exportar.relatorio_exportacao(res) + "\n\n" + como + "\n\n💡 É um modelo de completar texto (não de chat): "
+           "no LM Studio, escreva no formato *Pergunta: … Resposta:* e use temperatura baixa.")
+
+
 # ----------------------------------------------------------------------------- interface
 
 TEMA = gr.themes.Base(primary_hue="blue", neutral_hue="stone").set(
@@ -707,6 +763,28 @@ with gr.Blocks(title="Costureiro") as app:
                 saida1 = gr.Textbox(label="só a IA que lê", lines=8)
                 saida2 = gr.Textbox(label="só a IA que escreve", lines=8)
 
+        with gr.Tab("⑤ Levar para o LM Studio"):
+            gr.HTML('<div class="cartao" style="margin-bottom:10px"><b>Transforme a IA costurada num modelo comum (.gguf)</b> '
+                    'que abre no LM Studio, Ollama e llama.cpp. <b>Fusão exata</b>: quando as IAs são da mesma família e '
+                    'do mesmo tamanho, a mudança de base é embutida nos pesos (rápido). <b>Destilação</b>: para qualquer par, '
+                    'um modelo normal aprende a imitar a costurada (mais demorado).</div>')
+            with gr.Row():
+                e_escolha = gr.Dropdown(listar_ias(), label="IA nova", scale=5)
+                e_atual = gr.Button("↻ atualizar", scale=1)
+            e_info = gr.Markdown()
+            with gr.Row():
+                e_modo = gr.Radio(["Automático", "Fusão exata", "Destilação"], value="Automático", label="Como")
+                e_tipo = gr.Dropdown(["q8_0", "f16", "bf16"], value="q8_0", label="Formato do .gguf",
+                                     info="q8_0 = metade do tamanho, quase sem perda")
+                e_epocas = gr.Slider(1, 6, value=3, step=1, label="Épocas da destilação")
+            with gr.Row():
+                e_btn = gr.Button("📦 Exportar para o LM Studio", variant="primary", size="lg", scale=4)
+                e_parar = gr.Button("Parar", size="lg", scale=1)
+            e_barra = gr.HTML()
+            with gr.Accordion("Detalhes do andamento", open=False):
+                e_log = gr.Textbox(lines=10, max_lines=20, show_label=False, autoscroll=True)
+            e_res = gr.Markdown()
+
     c_btn.click(criar_cerebro_ui, [c_nome, c_base, c_camada, *c_esp, *assuntos, c_epocas, c_esparsidade],
                 [c_log, c_barra, c_res, c_g1, c_g2, c_escolha])
     c_parar.click(lambda: _parar.set())
@@ -738,6 +816,12 @@ with gr.Blocks(title="Costureiro") as app:
     b_atual.click(lambda: gr.update(choices=listar_ias()), None, escolha)
     escolha.input(ver_ia, escolha, [resumo_ia, g_ia])
     b_gerar.click(conversar, [escolha, prompt, n_tok, temp, comparar], [saida, saida1, saida2])
+
+    e_atual.click(lambda: gr.update(choices=listar_ias()), None, e_escolha)
+    e_escolha.input(ver_exportacao, e_escolha, e_info)
+    e_btn.click(exportar_ui, [e_escolha, e_modo, e_tipo, e_epocas], [e_log, e_barra, e_res])
+    e_parar.click(lambda: _parar.set())
+    app.load(lambda: gr.update(choices=listar_ias()), None, e_escolha)
 
 if __name__ == "__main__":
     app.queue().launch(server_name="127.0.0.1", server_port=7861, inbrowser=True, theme=TEMA, css=CSS)
