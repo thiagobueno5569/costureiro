@@ -73,14 +73,47 @@ def trabalhos(n_gsm: int, pedacos_gsm: int, epocas: int, trechos: int) -> list[d
     return T
 
 
-def preparar():
+def trabalhos_uma_ia(n_gsm: int, pedacos_gsm: int, prof_mat: str) -> list[dict]:
+    """Três jeitos de chegar a UMA IA (um .gguf) com o código do Coder e a matemática do Math."""
+    F = "fusoes"
+    T = [
+        {"nome": "ties", "gb": 2, "dep": [], "pular_se": AQUI / F / "ties-coder-math" / "ties.json",
+         "cmd": [PY, "fusao_pesos.py", "--base", "Qwen/Qwen2.5-1.5B", "--modelo", CODER, "--modelo", MATH,
+                 "--densidade", "0.5", "--saida", f"{F}/ties-coder-math", "--gguf", "q8_0"]},
+        {"nome": "destilada", "gb": 20, "dep": [], "pular_se": AQUI / F / "destilada-coder-math" / "destilacao.json",
+         "cmd": [PY, "destilar_tarefas.py", "--aluno", CODER, "--prof-matematica", prof_mat, "--prof-codigo", CODER,
+                 "--n-matematica", "4000", "--amostras-codigo", "4", "--saida", f"{F}/destilada-coder-math", "--gguf", "q8_0"]},
+        {"nome": "moe", "gb": 15, "dep": [], "pular_se": AQUI / F / "moe-coder-math" / "moe.json",
+         "cmd": [PY, "moe.py", "--base", CODER, "--assunto-base", "programação", "--especialista", f"{MATH}=matemática",
+                 "--passos-roteador", "800", "--saida", f"{F}/moe-coder-math", "--gguf", "q8_0"]},
+    ]
+
+    def avaliacoes(rotulo, args, dep, gb=7):
+        for t in ("humaneval", "mbpp"):
+            T.append({"nome": f"aval_{rotulo}_{t}", "gb": gb, "dep": dep,
+                      "cmd": [PY, "avaliar.py", *args, "--tarefas", t, "--saida", str(SAIDA / f"{rotulo}_{t}")]})
+        for k in range(pedacos_gsm):
+            T.append({"nome": f"aval_{rotulo}_gsm8k_{k}", "gb": gb, "dep": dep,
+                      "cmd": [PY, "avaliar.py", *args, "--tarefas", "gsm8k", "--n", str(n_gsm), "--fatia", f"{k}/{pedacos_gsm}",
+                              "--saida", str(SAIDA / f"{rotulo}_gsm8k_{k}")]})
+
+    avaliacoes("originais", ["--referencia", CODER, "--referencia", MATH], [])
+    avaliacoes("ties", ["--modelo", f"{F}/ties-coder-math", "--sem-originais"], ["ties"])
+    avaliacoes("moe", ["--modelo", f"{F}/moe-coder-math", "--sem-originais"], ["moe"], gb=9)
+    avaliacoes("destilada", ["--modelo", f"{F}/destilada-coder-math", "--sem-originais"], ["destilada"])
+    return T
+
+
+def preparar(plano="orquestra", prof_mat=MATH):
     """Baixa dados e modelos UMA vez antes de tudo (vários processos baixando juntos se atrapalham)."""
     log("preparando: dados das tarefas e modelos")
     subprocess.run([PY, "-c", "import avaliar\nfor t in ('humaneval','mbpp','gsm8k'): avaliar.carregar_tarefa(t)"],
                    cwd=AQUI, check=True)
-    subprocess.run([PY, "-c", f"from huggingface_hub import snapshot_download\nfor m in ('{CODER}','{MATH}'): "
+    subprocess.run([PY, "-c", f"from huggingface_hub import snapshot_download\nfor m in {tuple(dict.fromkeys([CODER, MATH] + (["Qwen/Qwen2.5-1.5B", prof_mat] if plano == "uma_ia" else [])))!r}: "
                               f"snapshot_download(m, allow_patterns=['*.json','*.safetensors','*.txt','*.model','*.jinja'])"],
                    cwd=AQUI, check=True)
+    if plano == "uma_ia":
+        subprocess.run([PY, "-c", "import exportar; exportar.obter_conversor()"], cwd=AQUI, check=True)
     destino = AQUI / "ias_novas" / "orq-coder-com-math"
     if not (destino / "ponte.pt").exists() and (AQUI / "modelos" / "orq-coder-com-math").exists():
         shutil.copytree(AQUI / "modelos" / "orq-coder-com-math", destino, dirs_exist_ok=True)
@@ -94,11 +127,14 @@ def main():
     ap.add_argument("--trechos", type=int, default=1500)
     ap.add_argument("--max-juntos", type=int, default=8)
     ap.add_argument("--desligar", action="store_true", help="desliga o pod do RunPod no fim (Stop)")
+    ap.add_argument("--plano", default="orquestra", choices=["orquestra", "uma_ia"])
+    ap.add_argument("--prof-matematica", default="Qwen/Qwen2.5-Math-7B-Instruct")
     a = ap.parse_args()
     SAIDA.mkdir(parents=True, exist_ok=True)
     os.chdir(AQUI)
-    preparar()
-    fila = trabalhos(a.n_gsm8k, a.pedacos_gsm8k, a.epocas, a.trechos)
+    preparar(a.plano, a.prof_matematica)
+    fila = (trabalhos(a.n_gsm8k, a.pedacos_gsm8k, a.epocas, a.trechos) if a.plano == "orquestra"
+            else trabalhos_uma_ia(a.n_gsm8k, a.pedacos_gsm8k, a.prof_matematica))
     feitos, falhou, rodando = set(), set(), {}
     for j in fila:
         if j.get("pular_se") and Path(j["pular_se"]).exists():
@@ -127,6 +163,8 @@ def main():
                 continue
             placa, livre = max(placas_livres(), key=lambda x: x[1])
             if livre < j["gb"] + 1:
+                if j["gb"] >= 13:          # um treino está esperando memória: não passa ninguém na frente
+                    break
                 continue
             arq = open(SAIDA / f"{j['nome']}.log", "w", encoding="utf-8")
             env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(placa), PYTHONUNBUFFERED="1",

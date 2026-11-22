@@ -42,6 +42,7 @@ PARADAS = {
     "mbpp": ['\n"""', "\nassert", "\nif __name__", "\nprint(", "\n```", "\n# Test", "\n\n\n\n"],
     "gsm8k": ["\n\nProblem:", "\nProblem:", "\n\n\n"],
 }
+NOVAS = ("costurada", "cérebro", "orquestra", "IA única")
 TAMANHO = {"humaneval": 384, "mbpp": 384, "gsm8k": 320}
 
 
@@ -77,8 +78,8 @@ def cortar(texto: str, paradas: list[str]) -> str:
 
 
 class Original:
-    def __init__(self, nome):
-        self.nome = nome
+    def __init__(self, nome, rotulo=None):
+        self.nome = rotulo or nome
         self.tok, self.m = nucleo.carregar_modelo(nome)
 
     @torch.no_grad()
@@ -189,7 +190,15 @@ def corrigir(tarefa: str, item: dict, resposta: str) -> bool:
 
 def avaliar(pasta_ia: Path, tarefas: list[str], n: int = 0, extras: list[str] = (), log=print,
             saida: Path | None = None, so_originais: bool = False, sem_originais: bool = False,
-            fatia: tuple[int, int] | None = None) -> dict:
+            fatia: tuple[int, int] | None = None, candidatos: list[str] = (), referencias: list[str] = ()) -> dict:
+    if pasta_ia is None:                              # modelos comuns: candidatos (IA única) + referências
+        modelos = [] if so_originais else [(f"IA única ({Path(m).name})", lambda m=m: Original(m, f"IA única ({Path(m).name})"))
+                                             for m in candidatos]
+        originais = list(referencias)
+        partes = [{"modelo": m, "inicio": 0, "fim": "IA única"} for m in candidatos]
+        for nm in ([] if sem_originais else dict.fromkeys(originais)):
+            modelos.append((nm, lambda nm=nm: Original(nm)))
+        return _rodar(modelos, originais, partes, "modelos", tarefas, n, log, saida, fatia)
     pasta_ia = Path(pasta_ia)
     if not (pasta_ia / "receita.json").exists():
         raise SystemExit(f"não achei {pasta_ia / 'receita.json'} — use a pasta de uma IA em ias_novas/")
@@ -216,11 +225,15 @@ def avaliar(pasta_ia: Path, tarefas: list[str], n: int = 0, extras: list[str] = 
         modelos.append((nm, lambda nm=nm: Original(nm)))
     for e in extras:
         modelos.append((e, lambda nm=e: Original(nm)))
+    return _rodar(modelos, originais, partes, str(pasta_ia), tarefas, n, log, saida, fatia)
+
+
+def _rodar(modelos, originais, partes, ia, tarefas, n, log, saida, fatia) -> dict:
     dados = {t: carregar_tarefa(t)[: n or None] for t in tarefas}
     if fatia:                                   # pedaço k de N (para rodar vários processos em paralelo)
         k, N = fatia
         dados = {t: v[len(v) * k // N: len(v) * (k + 1) // N] for t, v in dados.items()}
-    res = {"ia": str(pasta_ia), "partes": partes, "tarefas": {}, "detalhes": {}, "originais": list(dict.fromkeys(originais)),
+    res = {"ia": ia, "partes": partes, "tarefas": {}, "detalhes": {}, "originais": list(dict.fromkeys(originais)),
            "n": {t: len(dados[t]) for t in tarefas}}
     for chave, fabrica in modelos:
         nucleo.liberar_cache()
@@ -267,6 +280,8 @@ def referencias(res: dict, originais: list[str], dados: dict):
     roteador simples: escolhe a IA ORIGINAL inteira pela cara da pergunta (código → a de código; resto → a outra);
     oráculo: conta acerto se QUALQUER original acertou (teto de 'escolher a IA certa por pergunta')."""
     orig = list(dict.fromkeys(originais))
+    if not orig:
+        return
     cod = next((m for m in orig if "coder" in m.lower() or "code" in m.lower()), None)
     outra = next((m for m in orig if m != cod), orig[0])
     for t, por_modelo in res["detalhes"].items():
@@ -281,7 +296,7 @@ def referencias(res: dict, originais: list[str], dados: dict):
         n = max(1, len(itens))
         res["tarefas"][t]["roteador simples (IA inteira por pergunta)"] = {"acerto": acert_r / n, "n": len(itens), "s_por_item": 0}
         rot = [por_modelo[cod if (cod and parece_codigo(it["prompt"])) else outra][k]["ok"] for k, it in enumerate(itens)]
-        for nova in [m for m in por_modelo if m.startswith(("costurada", "cérebro", "orquestra"))]:
+        for nova in [m for m in por_modelo if m.startswith(NOVAS)]:
             ok_n = [x["ok"] for x in por_modelo[nova]]
             comp = {m: mcnemar(ok_n, [x["ok"] for x in por_modelo[m]]) for m in orig}
             comp["roteador"] = mcnemar(ok_n, rot)
@@ -293,7 +308,8 @@ def relatorio(res: dict) -> str:
     nomes = {"humaneval": "HumanEval (pass@1)", "mbpp": "MBPP sanitized (pass@1)", "gsm8k": "GSM8K (acerto)"}
     modelos = list(dict.fromkeys(m for t in res["tarefas"].values() for m in t))
     lin = [f"# Avaliação em tarefas de verdade · `{Path(res['ia']).name}`", "",
-           "Partes: " + " · ".join(f"`{p['modelo']}` " + ("(base)" if p["fim"] == "base" else f"[{p['inicio']}–{p['fim']}]")
+           "Partes: " + " · ".join(f"`{p['modelo']}` " + ("(base)" if p["fim"] == "base" else
+                                                         "(IA única)" if p["fim"] == "IA única" else f"[{p['inicio']}–{p['fim']}]")
                                    for p in res["partes"]), "",
            "| modelo | " + " | ".join(nomes[t] for t in res["tarefas"]) + " |",
            "|---|" + "---|" * len(res["tarefas"])]
@@ -302,7 +318,7 @@ def relatorio(res: dict) -> str:
         for t, v in res["tarefas"].items():
             x = v.get(m)
             cel.append(f"{100 * x['acerto']:.1f}% (n={x['n']})" if x else "—")
-        nova = m.startswith(("costurada", "cérebro", "orquestra"))
+        nova = m.startswith(NOVAS)
         regua = m.startswith(("roteador", "oráculo"))
         rotulo = f"**{m}**" if nova else (f"*{m}*" if regua else f"`{m}`")
         lin.append(f"| {rotulo} | " + " | ".join(cel) + " |")
@@ -335,9 +351,10 @@ def juntar(arquivos: list[Path], saida: Path) -> dict:
     res = {"ia": "", "partes": [], "tarefas": {}, "detalhes": {}, "originais": [], "n": {}}
     for f in arquivos:
         r = json.loads(Path(f).read_text(encoding="utf-8"))
-        if not res["ia"] or not r.get("partes"):
-            res["ia"] = res["ia"] or r["ia"]
-            res["partes"] = res["partes"] or r["partes"]
+        res["ia"] = res["ia"] or r.get("ia", "")
+        for p in r.get("partes", []):
+            if p not in res["partes"]:
+                res["partes"].append(p)
         for m in r.get("originais", []):
             if m not in res["originais"]:
                 res["originais"].append(m)
@@ -357,7 +374,7 @@ def juntar(arquivos: list[Path], saida: Path) -> dict:
             ok = sum(x["ok"] for x in por[m])
             res["tarefas"].setdefault(t, {})[m] = {"acerto": ok / max(1, len(itens)), "n": len(itens), "s_por_item": 0}
     if not res["originais"]:            # avaliações antigas: originais = quem não é IA nova nem régua
-        novos = ("costurada", "cérebro", "orquestra", "roteador", "oráculo")
+        novos = NOVAS + ("roteador", "oráculo")
         res["originais"] = list(dict.fromkeys(m for por in res["detalhes"].values() for m in por if not m.startswith(novos)))
     res.pop("pareado", None)
     referencias(res, res["originais"], dados)
@@ -369,6 +386,8 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="Costureiro · avaliação em tarefas de verdade")
     ap.add_argument("--ia", help="pasta da IA nova (ias_novas/...): costurada, cérebro ou orquestra")
     ap.add_argument("--sem-originais", action="store_true", help="avalia só a IA nova (para juntar depois)")
+    ap.add_argument("--modelo", action="append", default=[], help="modelo comum (pasta ou nome) a avaliar como IA nova")
+    ap.add_argument("--referencia", action="append", default=[], help="modelo original para comparar (com --modelo)")
     ap.add_argument("--fatia", default=None, help="k/N: avalia só o pedaço k de N (para paralelizar)")
     ap.add_argument("--juntar", nargs="+", help="arquivos .json de avaliações para juntar num relatório só")
     ap.add_argument("--tarefas", default="humaneval,mbpp,gsm8k")
@@ -382,13 +401,15 @@ def main(argv=None):
         print(relatorio(res))
         print(f"\nsalvo em {saida.with_suffix('.md')}")
         return
-    if not a.ia:
-        ap.error("--ia é obrigatório (ou use --juntar)")
-    pasta = Path(a.ia)
-    saida = Path(a.saida) if a.saida else AQUI / "resultados" / f"avaliacao_{pasta.name}"
+    if not a.ia and not a.modelo and not a.referencia:
+        ap.error("use --ia, --modelo/--referencia ou --juntar")
+    pasta = Path(a.ia) if a.ia else None
+    nome = pasta.name if pasta else "_".join(Path(m).name for m in (a.modelo or a.referencia))
+    saida = Path(a.saida) if a.saida else AQUI / "resultados" / f"avaliacao_{nome}"
     res = avaliar(pasta, [t.strip() for t in a.tarefas.split(",") if t.strip()], a.n, a.extra,
                   log=lambda m: print(m, flush=True), saida=saida, sem_originais=a.sem_originais,
-                  fatia=tuple(int(x) for x in a.fatia.split("/")) if a.fatia else None)
+                  fatia=tuple(int(x) for x in a.fatia.split("/")) if a.fatia else None,
+                  candidatos=a.modelo, referencias=a.referencia)
     print("\n" + relatorio(res))
     print(f"\nsalvo em {saida.with_suffix('.md')}")
 
