@@ -14,6 +14,7 @@
 - 🧵 **You can stitch them.** Qwen3-0.6B reads, a translator carries its thoughts into SmolLM2-1.7B, and SmolLM2 finishes the sentence. Perplexity drops from **12,168** with no translator to **164** with the rotation and **42.5** with the trained translator. SmolLM2 alone scores 9.3.
 - 🧪 **First "new model":** Qwen2.5-Coder-0.5B (layers 0–9) + Qwen2.5-Math-1.5B (layers 11–27). On held-out math text it beats **both** originals (0.722 vs 0.864 bits/char), with an honest caveat below.
 - 🧠 **Brain mode:** a base model calls **specialist blocks** from other models **token by token** through learned gates. It is a Mixture-of-Experts built out of different LLMs.
+- 🧾 **Real tasks, with a control ([details](#-real-tasks-humaneval-mbpp-gsm8k-with-a-control)):** lower perplexity did **not** carry over for the serial stitch. The new **orchestra mode** lifts Qwen2.5-Coder-1.5B from **46.3% → 61.0%** on HumanEval (full set, p < 0.001), but a **control** with no second model gets **58.5%**. So the gain comes from training the bridge, which is a cheap fine-tune (frozen model, ~6M parameters, 17 min). Adding the math model's *skills* did not work yet.
 
 ---
 
@@ -65,6 +66,32 @@ In the animation above, the frame is **model B's plane**. ○ marks where B keep
 Raw data: [`resultados/`](resultados/) · experiment scripts: [`experimentos/`](experimentos/).
 
 ---
+
+## 🧾 Real tasks (HumanEval, MBPP, GSM8K), with a control
+
+A reader on X pointed out that lower perplexity doesn't mean better code, so we measured: generated code runs against the official tests (pass@1), math answers are checked by the final number. Greedy decoding, the same prompts and stop rules for every model. `avaliar.py` reproduces everything.
+
+**1. Serial stitching (above) does not transfer skills.** Coder-0.5B (layers 0–6) → Math-1.5B (8–27), n = 40 per task: HumanEval **20%** vs 67.5% for the Coder alone, GSM8K **42.5%**, the same as the Math alone. The perplexity gain was surface statistics of the text.
+
+**2. Orchestra mode** ([`orquestra.py`](orquestra.py)) runs the base model intact. A second model reads the same text in parallel up to a deep layer, a bridge (Procrustes + MLP) translates its state, and a per-token gate mixes the two. The gate starts at ~98% base, so the orchestra begins *equal* to the base model. Training imitates whichever original model predicts each next token best, on task-style data (MBPP train split, GSM8K train split, real code; never the test sets).
+
+**Full test sets** (RTX 4090, 17 jobs in parallel, 3 h 14 min; [`resultados/bateria/`](resultados/bateria/)):
+
+| model | HumanEval (164) | MBPP (257) | GSM8K (300) |
+|---|---|---|---|
+| **orchestra: Coder + Math** | **61.0%** | **63.8%** | 36.3% |
+| **control: Coder + Coder** (same training, no math model) | 58.5% | 63.8% | 37.7% |
+| orchestra, 3 epochs / 2× data | 54.9% | 61.1% | 41.0% |
+| Qwen2.5-Coder-1.5B-Instruct | 46.3% | 57.6% | 39.3% |
+| Qwen2.5-Math-1.5B-Instruct | 33.5% | 29.2% | **48.0%** |
+| *router (whole model per question)* | 46.3% | 57.6% | 48.0% |
+| *oracle (any original is right)* | 56.1% | 63.8% | 61.3% |
+
+Paired exact McNemar test against the Coder alone: Coder + Math **+31/−7, p < 0.001** on HumanEval; the control **+29/−9, p = 0.002**.
+
+9. **The code gain is real, but it is not fusion.** The control, whose "second model" is a copy of the Coder itself (the gate gives it only 2%), gets almost the same. The trained bridge acts as a **cheap fine-tune**: the model stays frozen, ~6M parameters are trained, in 17 minutes, for +12 points on HumanEval.
+10. **Math skills did not transfer.** No orchestra reaches the 48% of the Math model alone on GSM8K; the trivial router is still better there.
+11. **Always test against a control and a router.** Without the control, this would have looked like "two models' skills combined".
 
 ## 🧠 Brain mode: specialists on demand
 
@@ -178,12 +205,16 @@ The same is in the app, tab ⑤ → *Direct fusion*.
 - Each translator is specific to its pair of models and cut points.
 - Export to `.gguf` loses the translator's non-linear part (fusion) or some quality (distillation). Brain-mode models can't be exported yet.
 - With little data the translator memorizes. Use at least ~2 MB of text per subject.
+- **Lower perplexity ≠ better answers.** On real tasks, serial stitching lost to the originals, and the orchestra's code gain is matched by a control without the second model (see above).
 
 ## 🗺️ Roadmap
 
 - [ ] 10–50× more training text, to see how close stitching gets to the full model
 - [x] Code + math stitched model
 - [x] Export to `.gguf` for LM Studio / Ollama / llama.cpp (exact fusion or distillation)
+- [x] Evaluation on real tasks (HumanEval, MBPP, GSM8K) with router, oracle, control and paired tests
+- [ ] Compare the bridge as a fine-tuning method against LoRA at the same budget
+- [ ] Skills that actually add up: per-question gate, truly complementary model pairs
 - [ ] Brain mode with real models: Qwen2.5-0.5B base + Coder and Math specialists
 - [ ] Evaluate on math that is not GSM8K-style, to separate adaptation from reasoning
 - [ ] **Shared latent space:** one encoder/decoder per model, so that any pair can talk without a pairwise translator

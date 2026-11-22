@@ -78,6 +78,32 @@ Dados brutos em [`resultados/`](resultados/). Scripts dos experimentos em [`expe
 
 ---
 
+## 🧾 Tarefas de verdade (HumanEval, MBPP, GSM8K), com controle
+
+Um leitor no X lembrou que perplexidade menor não quer dizer código melhor, então medimos: o código gerado roda contra os testes oficiais (pass@1), e na matemática conferimos o número final. Decodificação gulosa, os mesmos prompts e paradas para todos. O `avaliar.py` refaz tudo.
+
+**1. A costura em fila não passa habilidade.** Coder-0.5B (camadas 0–6) → Math-1.5B (8–27), 40 questões por tarefa: HumanEval **20%** contra 67,5% do Coder sozinho; GSM8K **42,5%**, igual ao Math sozinho. O ganho de perplexidade era estatística de superfície do texto.
+
+**2. Modo orquestra** ([`orquestra.py`](orquestra.py)): a IA base roda inteira. Uma segunda IA lê o mesmo texto em paralelo até uma camada funda, uma ponte (Procrustes + MLP) traduz o pensamento dela, e um portão por palavra mistura os dois. O portão começa com ~98% para a base, então a orquestra nasce *igual* à base. O treino imita, em cada palavra, o modelo original que acerta melhor, com dados no formato das tarefas (treino do MBPP, treino do GSM8K, código real; nunca os conjuntos de teste).
+
+**Conjuntos completos** (RTX 4090, 17 trabalhos em paralelo, 3 h 14 min; [`resultados/bateria/`](resultados/bateria/)):
+
+| modelo | HumanEval (164) | MBPP (257) | GSM8K (300) |
+|---|---|---|---|
+| **orquestra: Coder + Math** | **61,0%** | **63,8%** | 36,3% |
+| **controle: Coder + Coder** (mesmo treino, sem o Math) | 58,5% | 63,8% | 37,7% |
+| orquestra com 3 épocas e o dobro de dados | 54,9% | 61,1% | 41,0% |
+| Qwen2.5-Coder-1.5B-Instruct | 46,3% | 57,6% | 39,3% |
+| Qwen2.5-Math-1.5B-Instruct | 33,5% | 29,2% | **48,0%** |
+| *roteador (a IA inteira por pergunta)* | 46,3% | 57,6% | 48,0% |
+| *oráculo (alguma original acerta)* | 56,1% | 63,8% | 61,3% |
+
+Teste pareado (McNemar exato) contra o Coder sozinho no HumanEval: Coder + Math **+31/−7, p < 0,001**; controle **+29/−9, p = 0,002**.
+
+- **O ganho em código é real, mas não é fusão.** O controle, em que a "segunda IA" é uma cópia do próprio Coder (o portão dá só 2% da vez para ela), ganha quase o mesmo. A ponte treinada funciona como um **ajuste fino barato**: o modelo fica congelado, cerca de 6 milhões de números são treinados, em 17 minutos, e o HumanEval sobe 12 pontos.
+- **A matemática não passou.** Nenhuma orquestra chega aos 48% do Math sozinho no GSM8K; ali o roteador simples continua melhor.
+- **Sempre teste contra um controle e um roteador.** Sem o controle, isso teria parecido "habilidades de duas IAs somadas".
+
 ## 🖥️ O programa
 
 ```
