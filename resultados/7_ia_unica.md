@@ -85,6 +85,32 @@ vira uma IA melhor que as partes. A atenção do Coder não "sabe" usar a FFN do
 em outro modelo, e trocar a metade de um modelo pela de outro quebra o acordo entre elas. Treinar só o roteador
 não basta; seria preciso ajustar também a atenção (ou ao menos uma ponte por camada).
 
-## Destilação conferida
+## Destilação conferida: a única que vira uma IA melhor
 
-Em andamento.
+Professora de matemática: `Qwen/Qwen2.5-Math-7B-Instruct` (5× maior), com chat template e `\boxed{}`; resolveu 4.000
+problemas de treino do GSM8K e **3.788** acertaram o gabarito (só esses entram). Código: o próprio Coder gerou 4
+soluções por problema de treino do MBPP e entraram as **884** que passam nos testes. Aluno: `Coder-1.5B-Instruct`
+com LoRA r=32 (perda só na resposta), **1 época em 3.000 exemplos** (todos os 884 de código + 2.116 de matemática;
+o treino completo de 2 épocas em 4.672 não cabia no saldo). `.gguf` q8_0: 1.6 GB.
+
+O saldo do RunPod acabou antes do fim das avaliações; números **parciais** do log (mesma régua dos outros):
+
+| | HumanEval | MBPP | GSM8K |
+|---|---|---|---|
+| Coder (original) | 46.3% (164) | 57.6% (257) | 40.3% (439) |
+| Math (original) | 32.9% (164) | 28.8% (257) | 45.6% (439) |
+| MoE montado | 52.4% (164) | 49.8% (257) | 35.1% (439) |
+| **Destilada** (parcial) | **73.8%** (80 de 164) | **58.9%** (90 de 257) | ~58% (60 de 439) |
+
+Leitura honesta: parcial, sem teste pareado. Parte grande do salto no HumanEval provavelmente vem de o aluno ter
+aprendido o **formato** "enunciado → código" (o Coder Instruct perde pontos nesta régua sem chat template; a nota
+oficial dele no HumanEval é ~70%), não só de saber mais. Mesmo assim, é a única das três que sai melhor que as
+partes nas duas áreas, e é um `.gguf` comum (Qwen2 denso de 1.5B) que roda em qualquer LM Studio/Ollama.
+
+## Conclusão
+
+1. **TIES (somar os pesos):** quebra quando os modelos se afastaram muito do ancestral (Coder e Math).
+2. **MoE montado (partes de cada um como especialistas):** abre e roda no llama.cpp, mas fica pior que as partes; a
+   atenção de um modelo não sabe usar a FFN do outro, e treinar só o roteador não conserta.
+3. **Destilação conferida (a professora ensina, só entram respostas certas):** a que funciona. E é a única que
+   serve para modelos de famílias diferentes (vocabulários e arquiteturas diferentes), porque passa pelo texto.
